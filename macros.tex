@@ -1,0 +1,38 @@
+\tikzset{auto}
+\tikzset{lnode/.style={node distance=2.5cm, rectangle split, rectangle
+split horizontal, rectangle split parts=2, draw, rounded
+corners=0.05cm,font=\footnotesize,fill=white}}
+\tikzset{block/.style={regular polygon, regular polygon sides=4, draw, rounded
+corners=0.02cm, font=\footnotesize}}
+\tikzset{text/.style={regular polygon, regular polygon sides=4 }}
+\tikzset{ptr/.style={{Circle[black, length=3pt]}-latex}}
+\tikzset{ptr-g/.style={{Circle[lightgray, length=3pt]}-latex}}
+% Dotted start for arrows.
+\tikzset{
+    circlebase/.style={
+        decoration={
+            markings,
+            mark={
+                at position 0
+                with {
+                    \draw [fill] circle [radius=#1];
+                }
+            }
+        },
+        postaction=decorate
+    },
+    circlebase/.default=0.5mm
+}
+
+\definecolor{lightblue}{HTML}{AFE0FF}
+\definecolor{lightred}{HTML}{FFA0AF}
+\definecolor{darkred}{HTML}{A02020}
+\definecolor{rust}{HTML}{FFE7C7}
+\definecolor{operator}{HTML}{004b84}
+\definecolor{theme1}{rgb}{0.5,0.1,0.5}
+\definecolor{theme2}{rgb}{0.1,0.5,0.5}
+\definecolor{theme3}{rgb}{0.1,0.1,0.5}
+\definecolor{none}{rgb}{1.0,1.0,1.0}
+
+\newcommand{\Operator}[1]{{\color{operator}#1}}
+

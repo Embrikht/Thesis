@@ -1,0 +1,78 @@
+\begin{titlepage}
+\chapter[Appendix]{Frame control subfields\label{ch:appendixa}}
+
+\begin{figure}
+\centering
+\begin{bytefield}[boxformatting={\centering\itshape},
+bitwidth=2.9em]{16}
+\bitbox{11}{\large $\text{\larger[1]$<$}$-------------------------------------  Frame Control -------------------------------------$\text{\larger[1]$>$}$} \\
+\bitbox{1}{\scriptsize Protocol \\ Version} &
+\bitbox{1}{\scriptsize Type} &
+\bitbox{1}{\scriptsize Subtype} &
+\bitbox{1}{\scriptsize To \\ DS} &
+\bitbox{1}{\scriptsize From \\ DS} &
+\bitbox{1}{\scriptsize More \\ Frag.} &
+\bitbox{1}{\scriptsize Retry} &
+\bitbox{1}{\scriptsize Power \\ Manag.} &
+\bitbox{1}{\scriptsize More \\ Data} &
+\bitbox{1}{\scriptsize Protected \\ Frame} &
+\bitbox{1}{\scriptsize Order / +HTC \\} &
+\end{bytefield}
+
+\bigskip{}
+
+\resizebox{\textwidth}{!}{\begin{tabular}{|p{3cm}|p{0.8cm}|p{8cm}|}
+    \hline
+    \textbf{Name} &
+    \textbf{Size} &
+    \textbf{Description} \\
+    \hline
+	Protocol Version &
+	2 bits &
+	Information about what specific protocol from the 802.11 standard is used.\\
+	\hline
+	Type &
+	2 bits &
+	Defines what type of frame it is.\\
+	\hline
+	Subtype &
+	4 bits &
+	Defines what kind of subtype the frame is.\\
+	\hline
+	To DS &
+	1 bit &
+	Information about the direction of the frame.\\
+	\hline
+	From DS &
+	1 bit &
+	Information about the direction of the frame.\\
+	\hline
+	More Fragments &
+	1 bit &
+	Indicates if more fragments are to follow or not.\\
+	\hline
+	Retry &
+	1 bit &
+	Information whether the frame is retransmitted from the sender or not.\\
+	\hline
+	Power Managment &
+	1 bit &
+	Tells the receiver if the sender is in active mode or in power-save mode.\\
+	\hline
+	More Data &
+	1 bit &
+	Indicates if there are further data frames to follow.\\
+	\hline
+	Protected Frame &
+	1 bit &
+	Informs if encryption and authentication is used in the frame. Can be set for data frames, if authentication is set in the subtype field.\\
+	\hline
+	Order / +HTC &
+	1 bit &
+	Informs if the frames must be processed in a ordered sequence or not.\\
+	\hline
+\end{tabular}}
+\caption{The Frame Control Subfields.}
+\label{fig:framesub}
+\end{figure}
+\end{titlepage}

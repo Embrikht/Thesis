@@ -1,0 +1,213 @@
+\chapter{Results\label{ch:result}}
+
+This chapter will present the results of the experiments described in \Cref{ch:methodology}.
+
+First, the results of the simple PDF fingerprinting scenario will be presented in \Cref{sec:result1-result}. This will include the calculation of the trivial success probability. Next, the Wikipedia fingerprinting scenario results will be provided in \Cref{sec:result2-result}. Finally, the results of the domain fingerprinting scenario will be revealed in \Cref{sec:result3-result}. Each scenario considers with and without A-MSDU.
+
+\clearpage
+
+\section{Simple PDF fingerprinting\label{sec:result1-result}}
+
+\renewcommand{\arraystretch}{1.5}  % Adjust row height
+
+The first scenario considered a closed setting where the retrieved PDF files from a basic website. The attacker was aware that the user was accessing the web page and wanted to determine which PDF files the user was accessing. This scenario works as a baseline scenario, before introducing a more complex setting.
+
+\subsection{Trivial success probability}
+
+The use of the trivial success probability allows for an evaluation of different choices of padding, observing the correlation between padding and the reduction in the trivial advantage of an attacker. This provides information of message length leakage through side channels, illustrating the feasibility of an attacker if no mitigation technique is used. Accordingly, focusing on a theoretical setting can provide insights into what to expect from the 802.11 standard. 
+
+Recall that $\mathcal{M} = \{m_{1}, m_{2} ... , m_{900}\}$ is the set of all $900$ different PDF files stores on the web server, where the adversary's output is an index \\
+$i \in \{ 1, 2, ... , 900\}$ and $\mathcal{P}: \mathcal{M} \rightarrow [1,900]$ for $m_{i} \mapsto i$. The trivial success probability [\Cref{trivsucc}] is defined as
+\begin{equation*}
+\mathbf{TrivSucc}(\Sigma,M,\mathcal{P}) = \mathop{max}_{\mathcal{S}} \text{Pr}\big[ \mathcal{S}(M, \mathcal{P},(|c_{i}^{*}|)_{i \in [t]}) = \mathcal{P}(m^{*})\big]
+\end{equation*}
+where this thesis considers $M$ as the uniform distribution. Now define
+$\mathcal{M}~_{\lambda}~=~\{~m~\in~\mathcal{M}~ \colon |\Enc(K, m)| = \lambda \}$ be the set of messages that under $\Sigma$ encrypt to a ciphertext of length $\lambda$, and $|\mathcal{S}|$ be the number of different ciphertext lengths. This results in the follwing \footnote{The computation is the same as the one presented in \cite{DBLP:conf/ctrsa/GellertJLN22}.}.
+$$
+\mathbf{TrivSucc}(\Sigma,M,\mathcal{P}) = \sum_{\lambda \in \mathcal{S}} \frac{|\mathcal{M}_{\lambda}|}{|\mathcal{M}|} \cdot \frac{1}{|\mathcal{M}_{\lambda}|} = \sum_{\lambda \in \mathcal{S}} \frac{1}{|\mathcal{M}|} = \frac{|\mathcal{S}|}{|\mathcal{M}|} = \frac{|\mathcal{S}|}{900}
+$$
+Hence the trivial advantage of an attacker is
+$$
+\mathbf{TrivAdv}(\Sigma,M,\mathcal{P}) = \big( \frac{|\mathcal{S}|}{900} - \frac{1}{900} \big) \div \big( 1 - \frac{1}{900} \big)  = \frac{|\mathcal{S}|-1}{899}
+$$
+The results are illustrated in \Cref{trivsuccfigure1}.
+
+\begin{table}
+	\caption{Theoretical analysis of the simple PDF fingerprinting scenario. The different columns represent the mode of encryption considered \textit{Mode}, the padding parameter that specifies the amount of padding applied to the plaintexts to ensure they are a multiple of $\ell$ bytes, the number of uniquely identifiable PDF files \textit{$|pdf_{u}|$}, the number of different ciphertext lengths possible \textit{$|\mathcal{S}|$}, the size of the largest set of PDF files of identical size \textit{$|S_{max}|$}, and the trivial advantage \textit{$TrivAdv$}. The last column represents the overhead that occurs from using padding. The encryption protocol CCMP-128 utilizes CTR mode, and having $\ell = 1$ is equivalent to not using padding at all. The figure illustrates the amount of padding needed to substantially reduce the trivial advantage, although this results in increased overhead.}
+    \centering
+    \begin{tabular}{|c| c c c c c |c|c|}
+    		\hline
+        Nr & Mode & $\ell$ & $|pdf_{u}|$ & $|\mathcal{S}|$ & $|\mathcal{S}_{max}|$ & $TrivAdv$ & Overhead\\
+        \hline
+        \hline
+        $1$ & CTR & $1$ & $898$ & $899$ & $2$ & $0.9989$ & $-$ \\
+        \hline
+        $2$ & CTR & $100$ & $803$ & $850$ & $3$ & $0.9444$ & $0.01\%$ \\
+        \hline
+        $3$ & CTR & $500$ & $548$ & $706$ & $4$ & $0.7842$ & $0.04\%$\\
+        \hline
+        $4$ & CTR & $1000$ & $336$ & $565$ & $6$ & $0.6274$ & $0.09\%$\\
+        \hline
+        $5$ & CTR & $10 000$ & $48$ & $145$ & $22$ & $0.1602$ & $0.91\%$\\
+        \hline
+        $6$ & CTR & $100 000$ & $17$ & $37$ & $176$ & $0.040$ & $9.02\%$\\
+        \hline
+        $7$ & CTR & $1 000 000$ & $1$ & $8$ & $833$ & $0.0078$ & $102.10\%$\\
+        \hline
+        $8$ & CTR & $3 797 773$ & $0$ & $3$ & $891$ & $0.0022$ & $582.34\%$\\
+        \hline
+        $9$ & CTR & $11 393 317$ & $0$ & $1$ & $900$ & $0.0000$ & $1917.88\%$\\
+        \hline
+    \end{tabular}
+    \label{trivsuccfigure1}
+\end{table}
+
+\clearpage 
+
+\subsection{The classifier's accuracy\label{WFS12}}
+
+\begin{table}
+    \caption{Classifier's accuracy in the simple PDF fingerprinting scenario.}
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|>{\centering\arraybackslash}p{2cm}|>{\centering\arraybackslash}p{4cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|}
+        \hline
+        \multirow{2}{*}{\textbf{Classifier}} & \multirow{2}{*}{\parbox{4cm}{\centering \textbf{Features Considered}}} & \multicolumn{3}{|c|}{\textbf{A-MSDU disabled}} & \multicolumn{3}{|c|}{\textbf{A-MSDU enabled}} \\
+        \cline{3-8}
+         &  & $k=2$ & $k=10$ & $k=30$ & $k=2$ & $k=10$ & $k=30$ \\
+        \hline
+        Gaussian näive Bayes & Packet lengths with directionality & $97.9\%$ & $90.6\%$ & $84.7\%$ & $95.6\%$ & $82.6\%$ & $72.3\%$ \\
+        \hline
+        Gaussian näive Bayes & Total trace time, upstream/downstream total bytes and number of packets, number of traffic bursts, and bytes in traffic bursts & $98.9\%$ & $86.3\%$ & $67.5\%$ & $98.1\%$ & $78.8\%$ & $56.1\%$ \\
+        \hline
+    \end{tabular}
+    }
+    \label{fig:accuracy_WFS1}
+\end{table}
+
+\Cref{fig:accuracy_WFS1} illustrates the classifier's accuracy in the simple PDF fingerprinting scenario using a Gaussian näive Bayes classifier, which considered two types of features. The first type of feature is `packet lengths with directionality.' Recall from \Cref{subsec:cleaning-methodology} that each time a packet is observed with length $L$ going in direction $D$, the value in column $L\_D$ is incremented. For instance, if the attacker only observes the following traffic:
+$$
+(up, 400), (down, 1500), (down, 1500), (up, 200)
+$$
+then the columns $400\_up$ and $200\_up$ have the value $1$, the column $1500\_down$ has the value $2$, and all other columns have the value $0$.
+
+The second type of features are total trace time, upstream/downstream total bytes and number of frames, number of traffic bursts, and bytes in traffic bursts. Total trace time is calculated as the time delta between the first packet observed and the last observed downstream packet given a trace, and traffic burst is defined as a sequence of packets having the same directionality.
+
+Given the feature set, the columns are split into two categories: A-MSDU disabled and A-MSDU enabled. The accuracy, as described in \Cref{subsec:training-methodology}, is calculated by performing $t = \lceil \tfrac{4000}{k \cdot 20} \rceil$ number of trials for a given $k$. The dataset, consisting of $20$ traces times $k$ data points, is split $100$ times to calculate an average score for each trial. The final accuracy scores presented in \Cref{fig:accuracy_WFS1} are the averages taken over all trials within a scenario, given a choice of $k$ and a feature set. 
+
+For $k=2$, the lowest achieved accuracy was $95.6\%$, with the highest accuracy being $98.9\%$. The results show that the classifier's accuracy decreased as the size $k$ increased. In the case of $k=30$, the lowest achieved accuracy was $56.1\%$, with the highest accuracy being $84.7\%$. Comparing the results from A-MSDU enabled with A-MSDU disabled shows a slightly lower accuracy score. The table illustrates how using packet lengths with directionality as the feature achieved higher accuracy than using total trace time, upstream/downstream total bytes and number of frames, number of traffic bursts, and bytes in traffic bursts. If only packet lengths with directionality are considered, the lowest achieved accuracy for $k=2$ and $k=30$ would be $95.6\%$ and $72.3\%$, respectively.
+
+\begin{figure}[t]
+	\centering
+        \includegraphics[width=1\textwidth]{wfs1_highest.png}
+        \caption{The classifier's accuracy of $k=2$ obtained in the simple PDF fingerprinting scenario, where A-MSDU was disabled. The features considered were total trace time, upstream/downstream total bytes and number of packets, number of traffic bursts, and bytes in traffic bursts. The line `number of files processed' is the number of trials performed. This use of the word `files' is an implementation choice, and is not further discussed or considered.}
+    \label{fig:wfs1_highest}
+\end{figure}
+
+\Cref{fig:wfs1_highest} illustrates each trial's average accuracy in the simple PDF fingerprinting scenario, for $k=2$ and total trace time, upstream/downstream total bytes and number of packets, number of traffic bursts, and bytes in traffic bursts being considered. The classifier achieves an accuracy of $1$ in many instances. However, the classifier's accuracy was slightly lower than $70\%$ in two instances. Still, the classifier's accuracy was significantly better than guessing uniformly at random, which would provide a probability of $\tfrac{1}{k}$ for a given $k$.
+
+While \Cref{fig:wfs1_highest} shows the achieved accuracy as numerical values, \Cref{fig:web_plain_peekaboo,,fig:web_amsdu_peekaboo} aims to illustrate side channel information of encrypted 802.11 frames. The former illustrates that A-MSDU is disabled, while the latter is enabled. Each figure consists of three scatterplots, with five different colors and shapes, representing a specific PDF file (in the case of the simple PDF fingerprinting scenario), with each individual shape corresponding to a single trace. There are $50$ traces for each shape for all three scatterplots: leftmost, middle, and rightmost scatterplot. The leftmost scatterplot illustrates the different traces for each shape as the y-axis, with the time of the last observed downstream packet measured in seconds. The middle scatterplot demonstrates the correlation between the downstream and upstream total bytes measured in kilobytes. Finally, the rightmost scatterplot shows the different traces for each shape, as shown on the x-axis, and the y-axis shows the number of bursts observed per trace. In summary, the figures illustrate how enabling A-MSDU impacts the side channel information of the encrypted 802.11 frames.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=0.9\textwidth]{web_plain_peekaboo.png}
+        \caption{Each scatterplot visualize metadata of encrypted 802.11 frames. Each colour and shape represent a specific PDF file, where each PDF file was fetched $50$ times (each shape appears $50$ times in each plot). Five different PDF files were fetched.}
+    \label{fig:web_plain_peekaboo}
+\end{figure}
+
+\begin{figure}
+	\centering
+        \includegraphics[width=0.9\textwidth]{web_amsdu_peekaboo.png}
+           \caption{Each scatterplot is a visual representation of metadata of encrypted 802.11 frames related to PDF files. Figure follows the same format as \Cref{fig:web_plain_peekaboo}, with A-MSDU enabled.}
+    \label{fig:web_amsdu_peekaboo}
+\end{figure}
+
+\clearpage
+
+\section{Wikipedia fingerprinting\label{sec:result2-result}}
+
+\begin{table}
+    \caption{Classifier's accuracy in the Wikipedia fingerprinting scenario.}
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|>{\centering\arraybackslash}p{2cm}|>{\centering\arraybackslash}p{4cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|}
+        \hline
+        \multirow{2}{*}{\textbf{Classifier}} & \multirow{2}{*}{\parbox{4cm}{\centering \textbf{Features Considered}}} & \multicolumn{3}{|c|}{\textbf{A-MSDU disabled}} & \multicolumn{3}{|c|}{\textbf{A-MSDU enabled}} \\
+        \cline{3-8}
+         &  & $k=2$ & $k=10$ & $k=30$ & $k=2$ & $k=10$ & $k=30$ \\
+        \hline
+        Gaussian näive Bayes & Packet lengths with directionality & $98.3\%$ & $94.1\%$ & $91.4\%$ & $97.9\%$ & $91.7\%$ & $89.1\%$ \\
+        \hline
+        Gaussian näive Bayes & Total trace time, upstream/downstream total bytes and number of packets, number of traffic bursts, and bytes in traffic bursts & $86.7\%$ & $52.7\%$ & $36.9\%$ & $88\%$ & $62.3\%$ & $35.2\%$ \\
+        \hline
+    \end{tabular}
+    }
+    \label{fig:accuracy_WFS2}
+\end{table}
+
+The second scenario involved an attacker being aware that the user was accessing the Wikipedia domain and wanted to determine which Wikipedia pages the user was accessing.
+
+\Cref{fig:accuracy_WFS2} illustrates the classifier's accuracy in the Wikipedia fingerprinting scenario. For $k=2$, the highest accuracy achieved was $98.3\%$, where $86.7\%$ was the lowest. The classifier achieved the highest accuracy of $91.4\%$ when $k=30$, where lowest achieved was $35.2\%$. As with the simple PDF fingerprinting scenario, the classifier's accuracy decreased as the size of the privacy set increased, where considering packet lengths with directionality achieved higer accuracy than the other feature set. The result includes an anomly when $k=10$, when comparing A-MSDU disabled with A-MSDU enabled. If only packet lengths with directionality are considered, the lowest obtained accuracy for $k=2$ and $k=30$ was $97.9\%$ and $89.1\%$, respectively.
+
+Visualizations of side channel information are illustrated in \Cref{fig:wiki_plain_peekaboo,,fig:wiki_amsdu_peekaboo}. As in the simple PDF fingerprinting scenario, the figures illustrate how side channel information can be visualized, comparing when A-MSDU is disabled with A-MSDU enabled. It follows the same format as the scatterplots explained in \Cref{WFS12}.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{wiki_plain_peekaboo.png}
+       \caption{Each scatterplot visualize representation of metadata of encrypted 802.11 frames related to Wikipedia pages. Each colour and shape represent a specific Wikipedia page, where each page was fetched $50$ times (each shape appears $50$ times in each plot). Five different Wikipedia pages were fetched.}
+        \label{fig:wiki_plain_peekaboo}
+\end{figure}
+
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{wiki_amsdu_peekaboo.png}
+         \caption{Each scatterplot is a visual representation of metadata of encrypted 802.11 frames related to Wikipedia pages. Figure follows the same format as \Cref{fig:wiki_plain_peekaboo}, with A-MSDU enabled.}
+    \label{fig:wiki_amsdu_peekaboo}
+\end{figure}
+
+\clearpage
+
+\section{Domain fingerprinting\label{sec:result3-result}}
+
+\begin{table}
+    \caption{Classifier's accuracy in the domain fingerprinting scenario.}
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|>{\centering\arraybackslash}p{2cm}|>{\centering\arraybackslash}p{4cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|>{\centering\arraybackslash}m{1.5cm}|}
+        \hline
+        \multirow{2}{*}{\textbf{Classifier}} & \multirow{2}{*}{\parbox{4cm}{\centering \textbf{Features Considered}}} & \multicolumn{3}{|c|}{\textbf{A-MSDU disabled}} & \multicolumn{3}{|c|}{\textbf{A-MSDU enabled}} \\
+        \cline{3-8}
+         &  & $k=2$ & $k=10$ & $k=30$ & $k=2$ & $k=10$ & $k=30$ \\
+        \hline
+        Gaussian näive Bayes & Packet lengths with directionality & $99.4\%$ & $96.5\%$ & $93.4\%$ & $99.2\%$ & $95.7\%$ & $92.3\%$ \\
+        \hline
+        Gaussian näive Bayes & Total trace time, upstream/downstream total bytes and number of packets, number of traffic bursts, and bytes in traffic bursts & $91.2\%$ & $74.7\%$ & $55.8\%$ & $94.6\%$ & $66.5\%$ & $70.7\%$ \\
+        \hline
+    \end{tabular}
+    }
+    \label{fig:accuracy_WFS3}
+\end{table}
+
+The third scenario involved a user accessing different domains. In this scenario, the attacker had no prior knowledge of what domains the user was accessing. The attacker's goal was to identify which domains the user was visiting.
+
+\Cref{fig:accuracy_WFS3} illustrates the classifier's accuracy in the domain fingerprinting scenario. For $k=2$, the highest accuracy achieved was $99.4\%$ and $91.2\%$ the lowest. When $k=30$, the classifier's accuracy achieved a highest accuracy of $93.4\%$, where the lowest achieved accuracy was $55.8\%$. Similar to previous scenarios, the classifier's accuracy decreased as the size of the privacy set increased and considering packet lengths with directionality achieved higher accuracy than the other feature set. However, the results have an anomaly for the case of $k=30$, when comparing A-MSDU disabled with A-MSDU enabled. If only packet lengths with directionality are considered, the lowest obtained accuracy for $k=2$ and $k=30$ was $99.2\%$ and $92.3\%$, respectively.
+
+Visualizations of side channel information are illustrated in \Cref{fig:domain_plain_peekaboo,,fig:domain_amsdu_peekaboo}. The format is the same as in the previous scenarios.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{domain_plain_peekaboo.png}
+        \caption{Each scatterplot visualize representation of metadata of encrypted 802.11 frames related to domains. Each colour and figure represent a specific domain, where each domain was fetched $50$ times (each figure appears $50$ times in each plot). Five different domains fetched.}
+           \label{fig:domain_plain_peekaboo}
+\end{figure}
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{domain_amsdu_peekaboo.png}
+           \caption{Each scatterplot is a visual representation of metadata of encrypted 802.11 frames related to domains. Figure follows the same format as \Cref{fig:domain_plain_peekaboo}, with A-MSDU enabled.}
+    \label{fig:domain_amsdu_peekaboo}
+\end{figure}
+
+
+\clearpage

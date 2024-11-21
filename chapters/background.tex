@@ -1,0 +1,450 @@
+\chapter[Theoretical background]{Theoretical background\label{ch:background}}
+
+This chapter will provide the theoretical background necessary for understanding this thesis.
+
+The chapter begins by discussing cryptography in \Cref{sec:crypto-back}, followed by an overview of the IEEE 802.11 standard in \Cref{sec:wireless-back}. Finally, machine learning will be covered in \Cref{sec:machine-back}.
+
+\afterpage{\cfoot{\thepage}}
+
+\clearpage
+
+\section{Cryptography\label{sec:crypto-back}}
+
+Cryptography is a crucial part of modern network communication, as it can provide both confidentiality and data integrity to achieve data privacy. Since modern cryptographic algorithms and protocols were created and standardized in the 1970s, researchers have also tried to define security formally.
+
+\subsection{Symmetric encryption schemes\label{subsec:crypto-back}}
+
+A symmetric encryption scheme can be defined as a tuple
+
+\begin{equation*}
+\Sigma = (KeyGen, Enc, Dec)
+\end{equation*}
+
+where $\Sigma.KeyGen$ is an algorithm to generate a secret key, $\Sigma.Enc$ is the encryption algorithm and $\Sigma.Dec$ is the decryption algorithm. It should be stated that the $\Sigma.KeyGen$ algorithm and the $\Sigma.Enc$ algorithm can be randomized, while the $\Sigma.Dec$ algorithm must be deterministic. Correctness requires that given a key $K$ and a message $M$,
+
+\begin{equation*}
+Dec(K,Enc(K,M)) = M
+\end{equation*}
+
+\subsection{Standard security definitions\label{subsec:def-back}}
+
+Standard cryptographic security definitions for symmetric encryption schemes consider a security experiment in which the properties of the definition are defined in a game context. In this context, the adversary's objective is to demonstrate the capability of breaking the encryption scheme with a non-negligible advantage while following the rules of the game.
+
+Intuitively, the game starts with a challenger $\mathcal{C}$ flipping a coin. The outcome of flipping the coin remains a secret for the adversary, and the value is stored in a variable `$b$'. The value will remain the same throughout the experiment. The adversary aims to determine the value `$b$' through the encryption scheme. In other words, the adversary wants to determine the outcome of the coin flipping by granting the adversary access to one or more oracles, where each oracle has a specific function. What the adversary has access to depends on the capabilities of the encryption scheme.
+
+While many different cryptosystems exist, standard definitions are often used in cryptography. These definitions describe specific desired properties present in many cryptosystems today. An example of this is an instance of indistinguishability under chosen-ciphertext attack, focusing on indistinguishability between a ciphertext string and a random string (IND\$-CCA).
+
+\begin{figure}
+\begin{adjustbox}{margin*=10,frame,center}
+	\footnotesize
+	\begin{minipage}[t]{0.40\textwidth}
+		$\underline{Initialize()}$: 
+		\begin{algorithmic}[1]		
+			\State $b \leftrandom \{0,1\}$
+			\State $K \leftrandom \Sigma.\mathsf{KeyGen}$
+			\State $L \leftarrow \emptyset$
+			\State \Return	
+		\end{algorithmic}
+		
+		\bigskip{}
+		
+		$\underline{\mathcal{E}(m)}$:
+		\begin{algorithmic}[1]
+			\State \Return $\Sigma.\Enc(K,m)$
+		\end{algorithmic}
+		
+		\bigskip{}
+					
+		$\underline{\mathcal{D}(c)}$:
+		\begin{algorithmic}[1]
+		\State \If{$c \in L$:}
+			\State\hspace{\algorithmicindent} $m' \leftarrow \perp$
+		\State $\mathbf{else}$:
+			\State\hspace{\algorithmicindent} $m' \leftarrow \Sigma.\Dec(K, c)$
+		\State \Return $m'$
+		\end{algorithmic}	
+	\end{minipage}
+	\begin{minipage}[t]{0.40\textwidth}
+		$\underline{Challenge(m)}$: 
+		\begin{algorithmic}[1]
+			\State $c \leftrandom \Sigma.\Enc(m)$
+			\State $r \leftrandom \{0,1\}^{|c|}$
+			\State \If{$b=0$:}
+			\State\hspace{\algorithmicindent} $c' = c$
+		\State $\mathbf{else}$:
+			\State\hspace{\algorithmicindent} $c' = r$
+			\State $L \leftarrow L \cup \{c'\}$	
+			\State \Return $c'$	
+		\end{algorithmic}		
+		
+		\bigskip{}		
+				
+		$\underline{Finalize(b')}$: 
+		\begin{algorithmic}[1]		
+			\State $\text{Output} (b' = b)$	
+		\end{algorithmic}
+	\end{minipage}
+\end{adjustbox}
+\caption{The IND\$-CCA security game.}
+\label{fig:indcca}
+\end{figure}
+
+More formally, IND\$-CCA security can be structured as a game-based model \cite{bellarecode}, considering a game with a start procedure, optional oracles (each one a procedure), and an output procedure. The game involves an adversary, where an encryption scheme is considered secure if no computationally efficient adversary can win the game with a probability greater than a negligible amount. The IND\$-CCA security game is illustrated in \Cref{fig:indcca} and consists of the following.
+
+\begin{description}
+\item[Assigning a value b:] The game starts by running the `initalize' procedure, which chooses a value $b \in \{0,1\}$ uniformly at random. The outcome determines the behaviour of the `challenge' procedure.
+
+\item[Generating a secret key:] It is assumed that the game has a $\Sigma.\mathsf{KeyGen}$ algorithm to securly generate a secret key, $K$, in order to encrypt and decrypt queries. The adversary does not have access to this key.
+
+\item[Oracles:] The adversary $\mathcal{A}$ gets access to two oracles: an encryption oracle and a decryption oracle. By querying a message $m$ to the encryption oracle, the oracle will respond with the encryption of a message $m$. By querying a ciphertext $c$ to the decryption oracle, the oracle will respond with a message $m'$. More details will be provided when explaining the function of the list.
+
+\item[Initializing an empty list:] The start procedure initiate an empty list called $L$. When the encryption oracle returns a response to the adversary, the encrypted string will be appended to the list. When the decryption oracle gets a query, it will check to see if the query is already in the list $L$. If it is, the procedure will return $\perp$, indicating that the ciphertext was invalid. If not, the adversary will receive the decryption of the query $c$. 
+\end{description}
+
+If the secret bit is $0$, querying a message $m$ will result in the `challenge' procedure returning the encryption of the message $m$. If the secret bit is $1$, then querying a message $m$ will result in the `challenge' procedure returning a random string $r$ chosen uniformly at random, where the length of the message $r$ equals the length of the encryption of message $m$. Given the oracles, the adversary $\mathcal{A}$ now has to determine what the value of the secret bit is using the `finalize' procedure. How well an adversary $\mathcal{A}$ does against the encryption scheme is called the advantage, defined as
+
+\begin{equation*}
+\Adv{\Sigma}{IND\$-CCA}{\A} = \left| 2 \cdot \Pr \big[\text{IND\$-CCA} (\mathcal{A}) = 1 \big] \ \minus \ 1\right|
+\end{equation*}
+
+where $\Pr \big[\text{IND\$-CCA} (\mathcal{A}) = 1 \big]$ is the probability that the adversary $\mathcal{A}$ can determine the value of the secret bit, for a given encryption scheme $\Sigma$. The value of the advantage is a number scaled between $0$ and $1$. The adversary is doing poorly if the advantage is close to $0$, meaning that the algorithm is considered secure if the probability of an adversary performing a successful attack is negligible. The advantage is doing well if the advantage is close to $1$.
+
+Some things should be mentioned. Firstly, the reason for the restriction of messages that can be decrypted is that the adversary should not be able to send $c$ to the decryption oracle and receive back $m'$ if $c$ is the return value of a previous query to the encryption oracle. If the restriction on the messages to be decrypted is not present, the adversary can determine if the secret bit is $0$ or $1$ with certainty. Secondly, there is no guarantee that the decryption of $c$ makes any sense in practice.
+
+While these standard security notions aim to capture what security means theoretically, they do not necessarily reflect a real-world scenario. As network traffic involves messages of different lengths, the security game IND\$-CCA [\Cref{fig:indcca}] introduces a crucial restriction where the length of messages observed by the adversary in the theoretical setting is equal. This restriction is introduced in the encryption oracle $\mathcal{E}$ where the oracle either returns $c_{0}$ or $c_{1}$, where $c_{1}$ is a random string of the same length as $c_{0}$. If the encryption scheme uses counter mode to encrypt, then the produced ciphertext has the same length as the plaintext. As a result, the encryption scheme may be theoretically secure even though the observed ciphertext produced by $\mathcal{E}$ leaks information about the plaintext lengths, illustrating how the conventional security definitions fail to capture different message lengths.
+
+Padding involves appending additional data to a message prior to encryption. It is often used by symmetric encryption algorithms such as block cipher to extend the plaintext lengths to a multiple of the block size. Padding could be used as a mitigation technique to counteract information leakage by padding the plaintext to conceal the message length. Doing this would complicate the attacks on encrypted network traffic, taking advantage of the information revealed through side channels.
+
+There are drawbacks to employing length-hiding padding. While entirely concealing the message length may seem achievable theoretically, the unavoidable bandwidth usage increase must be considered. The increase in bandwidth due to padding has been previously researched \cite{DBLP:conf/acns/TezcanV11} where the scenario permits the attacker to select messages of varying lengths, demonstrating that achieving negligible distinguishability using standard cryptographic security definitions necessitates exponentially sized padding. The paper essentially showed that it is impossible to hide the length of the messages for arbitrary message distribution efficiently, indicating that practically concealing the entire message length is not feasible. The trade-off between a sufficient level of security and minimizing the bandwidth overhead must be considered. 
+
+\subsection{Length-hiding security\label{subsec:length-back}}
+
+Length-hiding encryption (LHE) was introduced by Paterson, Ristenpart, and Shrimpton \cite{DBLP:conf/asiacrypt/PatersonRS11} where the encryption algorithm used by an application includes an additional parameter, denoted as $\ell$. This parameter specifies the padding to be applied to a given message and is based on a different value, $\Delta$, derived from the left-or-right security experiment. The value of $\Delta$ has the limitation that $0 \leq ||m_{0}| - |m_{1}|| \leq \Delta$ given two messages $m_{0}$ and $m_{1}$. The introduction of $\ell$ chooses messages by the application to be constrained by the selection of the value $\Delta$, limiting the range of messages that can be chosen.
+
+A solution to this problem is to treat the length-hiding parameter $\ell$ as a fixed parameter and to make ciphertexts dependent on both the parameter $\ell$ and the size of encrypted messages. Treating $\ell$ as a fixed system parameter is the key idea in previous research done by Gellert et al. \cite{DBLP:conf/ctrsa/GellertJLN22} and is achieved by establishing a modified security model building upon the concept of LHE \cite{DBLP:conf/asiacrypt/PatersonRS11}. This security model is independent of any specific application and can still capture complex application settings.
+
+The authors \cite{DBLP:conf/ctrsa/GellertJLN22} start by expanding the previous definition of symmetric-key encryption to include the length-hiding parameter $\ell$. First, they define a deterministic function mapping the length of plaintexts to specific ciphertext lengths. This function is called $\mathbf{pad}$ and is defined by taking the plaintext and the parameter $\ell$ as input and outputs a padded plaintext such that 
+\begin{equation*}
+|\mathbf{pad}(m,\ell)| = \Bigl\lceil \dfrac{|m|}{\ell} \Bigr\rceil \cdot \ell
+\end{equation*}
+Defining a padding function introduces a trade-off between increasing bandwidth overhead from the length-hiding padding and security against message length attacks. Second, they expand the previous definition of an encryption scheme such that
+\begin{equation*}
+Enc^{(\ell)}(K, m) = Enc(K, \mathbf{pad}(m,\ell)) \ \text{and} \ Dec^{(\ell)}(K, c) = \mathbf{pad}^{-1}(Dec(K, c))
+\end{equation*}
+
+This approach allows the authors to define a symmetric-key encryption scheme that also captures `perfect' length-hiding padding, meaning that all ciphertexts possess identical lengths. As a result, no information about the length of the plaintexts is leaked. Further, they introduce several terms to concretely assess the impact of length-hiding encryption on the security of a given application. These terms are defined as follows \footnote{The definitions are based on the work in \cite{DBLP:conf/ctrsa/GellertJLN22} considering multi-key security. The definitions have been modified to suit the context of this thesis considering a single key $K$.}.
+
+\begin{figure}
+\begin{adjustbox}{margin*=10,frame,center}
+	\footnotesize
+	\begin{minipage}[t]{0.42\textwidth}
+		$\underline{Initialize()}$: 
+		\begin{algorithmic}[1]		
+			\State $K \leftrandom \Sigma.\mathsf{KeyGen}$
+			\State $\text{challenged} \ \leftarrow \ \mathbf{false}$			
+			\State $L \leftarrow \emptyset$
+			\State \Return $(\mathcal{M},\mathcal{P})$
+		\end{algorithmic}
+		
+		\bigskip{}		
+	
+		$\underline{\mathcal{E}(m)}$:
+		\begin{algorithmic}[1]
+			\State \Return $\Sigma.Enc(K,m)$
+		\end{algorithmic}
+		
+		\bigskip{}		
+		
+		$\underline{\mathcal{D}(c)}$:
+		\begin{algorithmic}[1]
+		\State \If{$c \in L$:}
+			\State\hspace{\algorithmicindent} $m' \leftarrow \perp$
+		\State $\mathbf{else}$:
+			\State\hspace{\algorithmicindent} $m' \leftarrow \Sigma.\Dec(K,c)$
+		\State \Return $m'$
+		\end{algorithmic}
+
+	\end{minipage}
+	
+	
+	\begin{minipage}[t]{0.51\textwidth}
+		$\underline{Challenge()}$:
+		\begin{algorithmic}[1]
+		\State \If{$\text{challenged} \ = \ \mathbf{true}$:}
+			\State\hspace{\algorithmicindent} $\mathbf{return} \perp$
+		\State $\text{challenged} \leftarrow \mathbf{true}$
+		\State $\tiny(m^{*}_{1}, m^{*}_{2}, \cdots, m^{*}_{t}) \leftrandom \mathcal{M}$
+		\State \For{$i \in \{1,2,...,t\}$}:
+			\State\hspace{\algorithmicindent} $c^{*}_{i} \leftrandom \mathcal{E}(m^{*}_{i})$
+			\State\hspace{\algorithmicindent} $L \leftarrow L \cup \{c^{*}_{i}\}$
+		\State \Return $(c^{*}_{1}, c^{*}_{2}, \cdots , c^{*}_{t})$
+		\end{algorithmic}
+		
+		\bigskip{}
+		
+		$\underline{Finalize(p)}$:
+		\begin{algorithmic}[1]
+			\State $\text{Output} \ (\mathcal{P}(\mathbf{m}^{*}) = p)$
+		\end{algorithmic}
+	\end{minipage}
+\end{adjustbox}
+\caption{The $(\Sigma,\mathcal{M},\mathcal{P})$-CCA security game.}
+\label{fig:newindcca}
+\end{figure}
+
+\begin{definition}
+\label{realsucc}
+Let $\mathcal{A}$ be an adversary. Given an encryption scheme $\Sigma$, a message distribution $M$, and a function $\mathcal{P}: (\{0,1\}^{*})^{t} \rightarrow \{0,1\}^{*}$ which specifies the information an adversary wants to learn given $t$ messages, then for any adversary, the real success probability of $\mathcal{A}$ in game $(\Sigma,\mathcal{M},\mathcal{P})\text{-CCA}$ [\Cref{fig:newindcca}] is defined as
+\[ \mathbf{RealSucc}(\Sigma,\mathcal{M},\mathcal{P},\mathcal{A}) := \text{Pr}\big[(\Sigma,\mathcal{M},\mathcal{P})\text{-CCA}(\mathcal{A}) = 1 \big]  \]
+The real success probability represent the actual likelihood that an adversary successfully executes an attack.
+\end{definition}
+
+\begin{definition}
+\label{trivsucc}
+Let $\Sigma$ be an encryption scheme, $M$ be a message distribution, $\mathcal{P}: (\{0,1\}^{*})^{t} \rightarrow \{0,1\}^{*}$ be a function specifying the information an adversary wants to learn, and let $\mathcal{S}$ be an algorithm. Now let $|c^{*}_{i}|$ be the size of the ciphertexts, where $c^{*}_{i} \leftrandom \Enc(K, m^{*}_{i})$ for $i \in \{1,2,...,t\}$, and $m^{*}~=~\big( m_{1}^{*}, m_{2}^{*}\cdots , m_{t}^{*} \big) \leftrandom~M$. The trivial success probability with respect to $(\Sigma,\mathcal{M},\mathcal{P})$ is defined as
+\[ \mathbf{TrivSucc}(\Sigma,M,\mathcal{P}) = \mathop{max}_{\mathcal{S}} \text{Pr}\big[ \mathcal{S}(M, \mathcal{P},(|c_{i}^{*}|)_{i \in [t]}) = \mathcal{P}(m^{*})\big] \]
+The trivial success probability represents the probability that an adversary can trivially obtain information about the plaintext from the length of ciphertexts given knowledge of the message distribution, without `breaking' the underlying encryption scheme. Note that the adversary does not have access to the actual ciphertexts.
+\end{definition}
+
+\begin{definition}
+\label{mostlikely}
+Let $M$ be a message distribution, $\mathcal{P}: (\{0,1\}^{*})^{t} \rightarrow \{0,1\}^{*}$ be a function specifying the information an adversary wants to learn, and let $\mathcal{S}$ be an algorithm. Given $m^{*}~=~\big( m_{1}^{*}, m_{2}^{*}\cdots , m_{t}^{*} \big) \leftrandom~M$, the most likely probability output of $\mathcal{P}$ on input $m^{*}$ is defined as
+\[ \mathbf{PrMostLikely}(M,\mathcal{P}) = \mathop{max}_{\mathcal{S}} \text{Pr}\big[ \mathcal{S}(M, \mathcal{P}) = \mathcal{P}(m^{*})\big] \]
+The most likely probability is introduced to capture any prior information that an adversary might obtain through leakage by the message distribution $M$. The probability is scaled to a value between $0$ and less than $1$.
+\end{definition}
+
+\begin{definition}
+\label{trivadv}
+Let $\Sigma$ be an encryption scheme, $M$ be a message distribution, $\mathcal{P}: (\{0,1\}^{*})^{t} \rightarrow \{0,1\}^{*}$ be a function specifying the information an adversary wants to learn. The trivial advantage with respect to $(\Sigma,\mathcal{M},\mathcal{P})$ is defined as
+\[ \mathbf{TrivAdv}(\Sigma,M,\mathcal{P}) = \frac{\mathbf{TrivSucc}(\Sigma,M,\mathcal{P}) - \mathbf{PrMostLikely}(M,\mathcal{P})}{1 - \mathbf{PrMostLikely}(M,\mathcal{P})} \]
+The trivial advantage is defined as the difference between the trivial success probability and the most likely probability. The advantage is scaled to a value between $0$ and $1$.
+\end{definition}
+
+The $(\Sigma,\mathcal{M},\mathcal{P})\text{-CCA}$ security game consists of a key $K$ being generated where the adversary gets a fixed $M$ and a given $\mathcal{P}$. The adversary observes $t$ encrypted messages using the key $K$, where the messages are sampled from the message distribution $M$. The adversary must now determine $\mathcal{P}(m^{*})$. In the case of website fingerprinting, an adversary wants to determine what website a user is accessing. The data exchanged between the user and the webserver would be $m^{*} \leftrandom M$ where the adversary wants to determine the website $\mathcal{P}(m^{*})$. The authors consider $M$ and $\mathcal{P}$ such that $\exists m, m' \in M$ such that Pr$[ \mathbf{m^*} = \mathbf{m} ] > 0$, Pr$[ \mathbf{m^*} = \mathbf{m'} ] > 0$ and $\mathcal{P}(m) \neq \mathcal{P}(m')$ \footnote{This gives $\mathbf{PrMostLikely}(M,\mathcal{P}) < 1$ and ensures that it is not trivial to predict $\mathcal{P}$ with respect to $M$ with probability $1$.}.
+
+The authors \cite{DBLP:conf/ctrsa/GellertJLN22} continue to demonstrate that under certain assumptions regarding the security of the encryption scheme, $\mathcal{A}$'s real success probability cannot exceed the trivial success probability significantly. They use this to state the following theorem.
+\begin{theorem}[\cite{DBLP:conf/ctrsa/GellertJLN22}, Thm~8]
+\label{theorem1}
+Let $M$ be a message distribution, $\mathcal{P}: (\{0,1\}^{*})^{t} \rightarrow \{0,1\}^{*}$ be a function specifying the information an adversary wants to learn, and $\mathcal{A}, \mathcal{B}$ be two adversaries. Then for any encryption scheme $\Sigma$ satisfying that for any $m \in \{0,1\}^{*}$, $K,K' \in \{0,1\}^{k}$, $\Enc(K,m)$ distributes identically to $\Enc(K',m)$, an adversary $\mathcal{B}$ can be constructed such that
+\[ \mathbf{RealSucc} (\Sigma,M,\mathcal{P},\mathcal{A}) \leq \Adv{\Sigma}{IND\$-CCA}{\mathcal{B}} + \mathbf{TrivSucc} (\Sigma,M,\mathcal{P}) \]
+\end{theorem}
+
+Thus, the real success probability can be upper bound by the sum of the trivial success probability and the security assumption of the encryption scheme. As a result, under the assumption that the encryption scheme is conventionally secure, the authors can now focus primarily on reducing the trivial success probability through appropriate padding techniques, allowing them to quantitatively measure the effectiveness of length-hiding encryption in concealing information about the message length.
+
+The choice of padding to be used is not trivial. According to previous research \cite{DBLP:conf/acns/TezcanV11}, if the adversary can only observe a single ciphertext, then sampling the padding length from a uniform distribution is a nearly optimal approach, given some restrictions. However, this does not reflect a real-world scenario where a passive attacker can observe encrypted traffic. Here, the attacker would observe information that is sent in clear text or can be calculated, such as metadata. Given the existence of this, concentrating on particular features of encrypted traffic could prove beneficial if future work enhances the effectiveness of the padding used.
+
+As stated by Degabriele \cite{DBLP:conf/ccs/Degabriele21}, there are two reasons to focus solely on length-hiding security and ciphertext lengths: specific distinct attacks differ significantly from website fingerprinting attacks such as CRIME and BREACH, and the uncovering of any length-hiding mechanisms could potentially make a difference for the development of more effective website fingerprinting countermeasures. However, the former necessitates the ability to select specific messages, which is not typically required for website fingerprinting attacks. 
+
+In order to focus solely on length-hiding security, Degabriele defined a unified security model that combines the strength of previously defined security models \cite{DBLP:conf/asiacrypt/PatersonRS11, DBLP:conf/acns/TezcanV11}. The aim is to evaluate the efficacy of different length padding strategies [\Cref{fig:paddingtechniques}] while capturing potential adverse interactions with cryptographic components.
+
+One of the most central parts of the unified security model is the definition of the composition theorem \cite[Thm~3.3]{DBLP:conf/ccs/Degabriele21}. This theorem resembles \Cref{theorem1} and states that when considering the unified security model, the advantage of an attacker is upper bounded by the sum of two things: the advantage of an attacker under something called `channel simulateability,' and the attacker's ability in analyzing the statistical properties of a probability distribution $\mathcal{P}$, from which padding lengths are drawn. Consequently, as long as the encryption scheme satisfies channel simulateability, the advantage of an attacker is reduced to the amount of information that is leaked through the probability distribution. If the encryption scheme satisfies the condition, the authors can primarily focus on the padding scheme in use. All details regarding the different components of the composition theorem and technicalities are explained in detail in \cite{DBLP:conf/ccs/Degabriele21}.
+
+By combining both papers \cite{DBLP:conf/ccs/Degabriele21, DBLP:conf/ctrsa/GellertJLN22}, research indicates that under certain assumptions regarding the security of the encryption scheme, there is a direct correlation between reducing the trivial success probability [\Cref{theorem1}] and the encryption scheme's ability to hide information about the message length. The composition theorem states that the ability to hide this information depends on the padding scheme in use. By the same argument by Degabriele \cite{DBLP:conf/ccs/Degabriele21}, focusing on hiding the message length could be a stepping stone towards more efficient countermeasures against website fingerprinting. However, as it is now, only focusing on the padding technique to hide the message length will not prevent website fingerprinting based on previous research.
+
+\section{IEEE 802.11\label{sec:wireless-back}}
+
+IEEE 802.11 standard is a layer two protocol primarily developed to connect devices over a wireless local area, either in home or office environment. Today, IEEE 802.11 has developed to be the most widely deployed WLAN technology, where the term IEEE 802.11 and Wi-Fi are used interchangeably in literature \cite{banerji2013ieee}.
+
+While different frames are being sent over the Internet for different purposes, this thesis focuses on data frames containing application-level data. It focuses specifically on the encrypted traffic itself and not the other components of Wi-Fi traffic, such as the generated and transmitted keys used for encryption. It is assumed that the CCMP-128 is utilized for encryption.
+
+\subsection{Architecture\label{subsec:arch-back}}
+
+The IEEE 802.11 defines two kinds of services \cite{forouzan2007data}:
+
+\begin{description}
+\item[Basic Service Set (BSS):] A basic service set consists of stationary or mobile wireless stations and an access point (AP). 
+
+\item[Extended Service Set (ESS):] An extended service set consists of two or more BSSs with APs. The BSSs are connected through a distribution system. The distribution system will be further discussed later on.
+
+\end{description}
+
+While the IEEE 802.11 standard supports different modes of operation depending on the network topology, the infrastructure mode is by far the most common \cite{brzuska2017modular}. Here, the clients only communicate through an access point. The thesis only considers infrastructure mode.
+
+In addition to the services, IEEE 802.11 defines four main physical components in an 802.11 network \cite{abdelalim2019study, gast2006802}. These are the following:
+
+\begin{description}
+\item[Stations:] Stations are computing devices with wireless network interfaces, like laptops and smartphones. In wireless/wired networks, these are commonly abbreviated as STAs. Other names for stations are clients, nodes, users, originators, transmitters, and receivers. Stations will be referred to as clients in this thesis.
+
+\item[Wireless medium:] Data structured at layer two are often called frames. A wireless medium transfers the frames within a network between two devices. Three physical layers were initially standardized: two radio frequencies and one infrared.
+
+\item[Access points:] Devices that work as bridges between the wireless 802.11 and wired networks. An access point also manages the transmission of frames between clients within the network.
+
+\item[Distribution system:] The distribution system is a wired or wireless network that forwards the frames to their destination. It works as the logical component of the 802.11 standard, ensuring the connection to the network. In a wireless network, this is used as different access points must communicate with each other to track the movements of the mobile clients. Ethernet is commonly used for these components.
+\end{description}
+
+\subsection{802.11 MAC frame format\label{subsec:mac-back}}
+
+There are three 802.11 frame types: management, control, and data frames. Management frames are frames meant for establishing and maintaining communications. An example of a management frame is the beacon frame, used to announce the presence of a WLAN and provide a signal for synchronizing communications between devices. Control frames are frames used to `control' the physical medium and assist in delivering other frames. An example of a control frame is the ACK frame, which is sent from the receiver to the sender to verify that the receiver has received the given frame. The last frame type is data frames. \textit{Data frames} contain higher-level protocol data, such as web pages.
+
+The MAC layer frame consists of 11 fields, as shown in \Cref{fig:macframe}. These fields combine to form a message protocol data unit (MPDU). The 11 fields are the following \cite{9363693,abdelalim2019study,forouzan2007data,kumar2022design}.
+
+\begin{figure}
+	\begin{bytefield}[bitwidth=auto, bitheight=1.15em, bitformatting={\tiny}, boxformatting={\centering\itshape}]{32}
+	\bitheader{0,7,8,15,23,24,31} \\
+	\begin{leftwordgroup}{MAC Header}
+	\bitbox{16}{Frame Control} &	\bitbox{16}{Duration/ID} \\
+	\wordbox[lrt]{1}{Address 1}	\\
+	\bitbox[lrb]{16}{} & \bitbox[lrt]{16}{Address 2} \\
+	\wordbox[lrb]{1}{} \\
+	\wordbox[lrt]{1}{Address 3}	\\
+	\bitbox[lrb]{16}{} & \bitbox{16}{Sequence Control} \\
+	\wordbox[lrt]{1}{Address 4}	\\
+	\bitbox[lrb]{16}{} & \bitbox{16}{QoS Control} \\
+	\bitbox{32}{HT Control}
+	\end{leftwordgroup} \\
+	\wordbox[lr]{6}{$\mathbf{Frame \ Body}$ \\ $\vdots$} \\
+	\begin{leftwordgroup}{MAC Frame Field}
+	\bitbox{32}{FCS} 
+	\end{leftwordgroup} \\	
+	\end{bytefield}
+	\caption{The IEEE 802.11 Generic Frame Format.}
+\label{fig:macframe}
+\end{figure}
+
+\begin{description}
+\item[Frame control:] The frame control field is a two-byte long field defining the type of frame and control information. A specific but will be set in this field if the frame is encrypted. The subfields under the frame control field can be viewed in \Cref{fig:framesub}. 
+
+\item[Duration/ID:] The duration ID field is a two-byte long field carrying the Network Allocation Vector (NAV) value. The value restricts the time of access to the medium.
+
+\item[Addresses:] There are four address fields, each six bytes long. The meaning of these address fields depends on specific subfields in the frame control.
+
+\item[Sequence control:] The sequence control is a two-byte long field. The first four bits define the fragment number, while the remaining $12$ define the sequence number. The sequence number is the same in all fragments.
+
+\item[Quality of service (QoS) control:] The presence of this field depends on the setting of the quality of service subfield found in the Subtype field. This field identifies the traffic category the frame belongs to and specifies the packet's priority. Information on whether A-MSDU is enabled is set in this field.
+
+\item[HT control:] The presence of this field depends on the setting of the +HTC/Order subfield found in the Frame Control field. This field is used to support other features and extend the capabilities of the standard, such as channel bandwidth.
+
+\item[Frame body:] The frame body is a variable length field containing information specific to the given frame type and subtype. While the size varies, the minimum length of the frame body is zero bytes, with the maximum 802.11 frame body length being approximately 2300 bytes.
+
+\item[FCS:] The WLAN FCS field is a four-byte long field containing a four-byte long cyclic redundancy check (CRC). The CRC is an error-detecting code that detects corrupted data during transmission. This field will provide information on higher-level protocols, such as TCP.
+\end{description}
+
+The thesis will not write extensively about the different subfields, even though most frame fields are divided into new subfields. More detailed information is provided in the different fields and subfields~\cite{9363693}.
+
+\subsection{WPA2\label{subsec:wpa-back}}
+
+One of the most common wireless security standards today is the 802.11i standard, commonly referred to as WPA2, although technically incorrect \cite{brzuska2017modular}. The wireless security standard is now incorporated into the 802.11 standard and exists to implement security features for WLANs.
+
+\begin{figure}
+\includegraphics[scale=0.55, width=12cm]{ccmpencryption.png}
+\caption{The CCMP encapsulation of a single block. Figure from \cite{10.3844/jcssp.2015.283.290}.}
+\label{fig:ccmpencryption}
+\end{figure}
+
+There are two types of WPA2: Enterprise and Personal. WPA2-Enterprise is designed for use in organizations where the security standard depends upon the IEEE 802.1X standard to authenticate in addition to generating the main cryptographic key used to secure wireless network traffic (4-Way-Handshake protocol) \cite{nakhila2016parallel}. On the other hand, WPA2-Personal uses pre-shared keys (PSK) for authentication and is designed for home use. This PSK uses an 8 to 63-character shared key. However, the temporal keys that encrypt the application data are derived from some values and the original shared key. These values are easily captured during over-the-air transmissions between the client and the access point \cite{9376023}, and this is a problem with WPA2-PSK.
+
+Once the cryptographic keys are generated and transmitted, encryption is used to secure the application data during transmission. Encryption is optional in 802.11 WLANs but highly desired as a passive attacker can read the traffic within the network without it. While different protocols exist, WPA2 uses Counter Mode CBC-MAC Protocol (CCMP) \cite{brzuska2017modular}, enabling a single key for encryption and authentication.
+
+\subsection{CCMP\label{subsec:ccmp-back}}
+
+The Counter Mode CBC-MAC protocol (CCMP) uses the AES symmetric encryption algorithm with a 128-bit block size, and either a 128-bit key (CCMP-128) or a 256-bit key (CCMP-256) \cite{9363693}. In addition, the protocol requires a new temporal key for every session and a unique value, a nonce, for each data frame encrypted by a given temporal key. This nonce is often called the packet number (PN), a 48-bit value \cite{junaid2006vulnerabilities}. The CCMP consists of two components: CBC-MAC and CTR, where cipher block chaining (CBC) is used for integrity and authenticity, and counter mode (CTR) for confidentiality. Both CBC and CTR are two AES modes of operation.
+
+\begin{figure}
+\includegraphics[scale=0.6, width=13cm]{ccmpfinalheader.png}
+\caption{The expanded CCMP MPDU format. Figure from \cite{9363693}.}
+\label{fig:ccmpfinalheader}
+\end{figure}
+
+The process of encrypting MPDU using CCMP starts by using the AAD, the CCM nonce, and the temporal key \cite{9363693,junaid2006vulnerabilities,ross2010securing,10.3844/jcssp.2015.283.290}.
+These are used to generate the encryption of the plaintext MPDU together with the encrypted message integrity check (MIC). More information regarding the encryption process will be discussed in \Cref{subsec:paddingwpa-back}. The MIC protects against replay attacks, as well as the CCMP header and parts of the MAC header, where the value is appended to the MPDU. For CCMP-128, this value is 8 bytes long. The process of encrypting MPDU using CCMP can be seen in \Cref{fig:ccmpencryption}. 
+
+The process is finalized by appending the CCMP header in front of the encrypted MPDU and the MIC before combining this with the original MPDU header. The CCMP frame is then sent to the MAC layer, where the MAC frame will be constructed as explained in \Cref{subsec:mac-back}. As a result, the CCMP header is sent unencrypted to the data recipient. The final format of the header after encryption can be seen in \Cref{fig:ccmpfinalheader}.
+
+\subsection{Padding in WPA2 today\label{subsec:paddingwpa-back}}
+
+The use of CBC-MAC produces the MIC value, which is appended to the payload prior to encryption. The ciphertext $C$ is the encryption of the original payload concatenated with the MIC value. However, the plaintext is encrypted using CTR as the mode of operation.
+
+\begin{figure}
+\begin{tikzpicture}
+
+        \foreach \x in {0, 1, 2} {
+            \node (f\x) at ($\x*(2.5cm,0)$) [minimum size=1.25cm,rounded corners=1ex,fill=red!20,draw] {{\sc Enc}};
+            \node (n\x) [above of=f\x, node distance=1.5cm] {Nonce, Ctr};
+            \node (c\x) [below of=f\x, node distance=2.5cm] {$C_\x$};
+            \node (k\x) [left of=f\x, node distance=1.5cm] {$k$};
+            \node (p\x) [below of=f\x, node distance=1.5cm, circle, draw] {};
+            \node (m\x) [left of=p\x, node distance=1.0cm] {$P_\x$};
+            \draw[-] (p\x.north) -- (p\x.south);
+            \draw[-] (p\x.east) -- (p\x.west);
+            \draw[-latex] (m\x) -- (p\x);
+            \draw[-latex] (n\x) -- (f\x);
+            \draw[-latex] (f\x) -- (p\x);
+            \draw[-latex] (k\x) -- (f\x);
+            \draw[-latex] (p\x) -- (c\x);
+        }
+
+        \begin{scope}
+            \node at (6.5,0) {$\cdots\cdots$};
+        \end{scope}
+
+        \begin{scope}
+            \node (f) at (8.8cm,0) [minimum size=1.25cm,rounded corners=1ex,fill=red!20,draw] {{\sc Enc}};
+            \node (n) [above of=f, node distance=1.5cm] {Nonce, Ctr};
+            \node (c) [below of=f, node distance=2.5cm] {$C_n$};
+            \node (k) [left of=f, node distance=1.5cm] {$k$};
+            \node (p) [below of=f, node distance=1.5cm, circle, draw] {};
+            \node (m) [left of=p, node distance=1.0cm] {$P_n$};
+            \draw[-] (p.north) -- (p.south);
+            \draw[-] (p.east) -- (p.west);
+            \draw[-latex] (m) -- (p);
+            \draw[-latex] (n) -- (f);
+            \draw[-latex] (f) -- (p);
+            \draw[-latex] (k) -- (f);
+            \draw[-latex] (p) -- (c);
+        \end{scope}
+
+\end{tikzpicture}
+\caption{Diagram of counter mode encryption. Diagram from \cite[Diana Maimut]{TikZ:for:Cryptographers}.}
+\label{fig:ctrmode}
+\end{figure}
+
+Given a plaintext message $M$, this message is divided into blocks $p_{1}, p_{2}, \cdots , p_{l}$ of 128-bits each where $\sum_{i=0}^{l} p_{i} = |M|$. However, depending on the message length $|M|$, $|p_{l}| \leq 128$. For encryption, counter mode inputs four parameters: a nonce, a counter, a key, and a plaintext block $p_{i}$. The output is an encrypted block $c_{i}$ of 128 bits. This process is performed by encrypting the nonce value and the counter value using the key $k$ to produce a value $t_{i}$. This value is inputted to XOR with the plaintext $p_{i}$. The result of this computation is $c_{i}$ [\Cref{fig:ctrmode}].
+
+Since the final block $p_{l}$ can be shorter than the cipher block size of 128 bits, it is unnecessary to use padding as the ciphertext has the same length as the plaintext. Even though the MIC value is appended to the payload prior to encryption, the length of the payload can easily be deduced by removing the last 64 bits of the encrypted payload (assuming CCMP-128). Thus, the length of the payload can easily be determined.
+
+\subsection{Aggregation\label{subsec:aggregation-back}}
+
+The MAC layer processes each frame before sending it to the physical layer and over the medium.As a result, each frame contains a physical layer header, MAC header, and CCMP header. The overhead occurring from these headers is constant and incurs for each transmission. A solution to this is referred to as aggregation.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.2, width=8cm]{amsdu.png}
+\caption{Visual display of A-MSDU (=MPDU). A single A-MPDU may consist of one or more MPDUs, while an A-MSDU may consist of one or more MSDUs. The figure illustrates the relationship between the two at the data link layer. Figure from \url{https://inet.omnetpp.org/docs/showcases/wireless/aggregation/doc/index.html}.}
+\label{fig:ampdu_amsdu}
+\end{figure}
+
+Aggregation was first introduced in the 802.11n \cite{8693733} to reduce the overhead occurring from headers, and works by combining multiple packets to a single transmission unit that, under normal circumstances, would have been transmitted independently \cite{bhanage2017amsdu}. In Wi-Fi, modern protocols support two types of aggregation: aggregate MAC service data unit (A-MSDU) and aggregate MAC protocol data unit (A-MPDU). \Cref{fig:ampdu_amsdu} shows the relation between regular frames, A-MSDU, and A-MPDU units. While the figure indicates that the maximum size of an A-MSDU frame is 7935 octets, the IEEE 802.11 standard \cite{9363693} specifies a maximum size of 7951 octets for CCMP encryption. This thesis will consider both cases, with and without using A-MSDU, as this is relevant to the data link layer.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.3, width=12cm]{basic_amsdu.png}
+\caption{The IEEE 802.11 basic A-MSDU subframe format, illustrating the different fields in A-MSDU subframes. Figure from \cite{9363693}.}
+\label{fig:basic_amsdu}
+\end{figure}
+
+Aggregate MAC service data unit (A-MSDU) refers to one or more MSDU frames combined into a single frame. When the MAC layer processes a packet, the packet is treated as the payload and will receive a single MAC header defined in \Cref{subsec:mac-back}. If encryption is used, the plaintext MPDU in \Cref{fig:ccmpencryption} will encompass the whole A-MSDU, which consists of one or more MSDUs. Consequently, the A-MSDU will receive a single CCMP header, causing each MSDU within the A-MSDU to be encrypted with the same CCM nonce, AAD, and temporal key.
+
+An A-MSDU frame consists of one or more subframes. Each subframe has an A-MSDU subframe header followed by the MSDU payload and $0$ to $3$ octets of padding to ensure the length is a multiple of $4$ octets. The last subframe has no padding \cite{9363693}. The MSDU can be viewed as a regular frame. The terminology (MSDU and MPDU) is introduced to be more specific regarding where the frame is located within the data link layer. The A-MSDU subframe header consists of the destination address, source address, and the length of the MSDU given in octets. The basic A-MSDU subframe structure is illustrated in \Cref{fig:basic_amsdu}. While there are different types of A-MSDU subframe formats, only the basic A-MSDU subframe format will be considered in this thesis.
+
+There are issues with A-MSDU, though it reduces the overhead from the headers. It may introduce both delay and higher packet error rate due to the transmitter having to wait for collecting frames to aggregate, and the size of the aggregated frames increase \cite{bhanage2017amsdu}. However, using A-MSDU allows the transmission of several frames as a single unit on the physical layer and the retransmitting subframes at the A-MSDU level. Enabling aggregation improves efficiency, as fewer cyclic redundancy check calculations are needed, and it limits the number of MAC headers present within an A-MPDU.
+
+\section{Machine Learning\label{sec:machine-back}}
+
+Machine learning is present in many different areas of our lives, such as healthcare, finance, marketing, and education. A reason for this is the development of new technology and algorithms, resulting in a rapid increase in online data and low-cost computation \cite{jordan2015machine}. Machine learning has impacted empirical sciences by using algorithms to analyze data and solve problems. These could be finding an optimal approach to a problem, optimal parameters to a function, or solving a classification problem.
+
+\subsection{Classification\label{subsec:classification-back}}
+
+A classification problem can be viewed as a problem of predicting or identifying what class an object, data point, or observation belongs to based on previously observed data. \textit{Classification} is a supervised machine learning process that understands the connection between input and output values by training on data before testing the \textit{classifier}. It is an example of supervised learning since it tells the algorithm what to predict \cite{harrington2012machine}.
+
+The process starts by dividing the data set into two sets: a training set used for the training phase and a test set used for the testing phase. During the training phase, the machine learning algorithm is trained through the use of a training set consisting of $n$ tuples on the form $(X_{1}, Y_{1}), (X_{2}, Y_{2}), ..., (X_{n}, Y_{n})$. Each $X_{i}$ is called a vector of features, and each $Y_{i}$ is a label \cite{DBLP:conf/sp/DyerCRS12}. The algorithm is trained using the tuples to calculate statistical properties and learn the relationship between the different vectors of features and labels. The machine learning algorithm uses the testing set of $k$ tuples in the same format as the training set. The classifier is given $k$ vectors of features, $X_{1}, X_{2}, ... , X_{k}$. Given these vectors, the classifier must return labels $Y^{'}_{1}, Y^{'}_{2}, ... , Y^{'}_{k}$. The accuracy of the classifier is defined as 
+\begin{equation*}
+Acc^{n,k,c}_{ML}(\mathcal{A})= \dfrac{\sum^{k}_{i=1} Y^{'}_{i} \stackrel{?}{=} Y_{i}}{k}
+\end{equation*}
+where $n$ is the size of the training set, $k$ is the size of the testing set, $c$ is the configuration within the chosen machine learning algorithm $ML$, $A$ is the entity utilizing the machine learning algorithm and $Y^{'}_{i} \stackrel{?}{=} Y_{i}$ is the prediction given the vector of features $X_{i}$. Note that $(Y^{'}_{i} \stackrel{?}{=} Y_{i}) = 1$ if and only if the classifier predicts correctly, $0$ otherwise.
+
+\subsection{The naïve Bayes classifier\label{subsec:naivebayes-back}}
+The naïve Bayes classifier is a probabilistic supervised machine learning algorithm. It is based on applying Bayes' theorem with the `naïve' assumption that having information about one feature does not offer any extra information about any other feature, given an output variable. Given a label $Y$ where the classifier observes $X_{1}, X_{2}, ..., X_{n}$\footnote{https://scikit-learn.org/stable/modules/naive_bayes.html},
+\begin{equation*}
+P(Y \ | \ X_{1}, X_{2}, ..., X_{n}) = \frac{P(Y)P(X_{1}, X_{2}, ..., X_{n} \ | \ Y)}{P(X_{1}, X_{2}, ..., X_{n})} = \frac{P(Y) \prod_{i=1}^{n} P(X_{i} \ | \ Y)}{P(X_{1}, X_{2}, ..., X_{n})}
+\end{equation*}
+Thus, Bayes' theorem is simplified due to the naïve assumption. The classifier is considered relatively straightforward as the intuition behind the classifier is simple, and the parameters are easier to estimate compared to other algorithms. It is considered fast and handles high-dimensional data fairly well \footnote{https://www.ibm.com/topics/naive-bayes}. On the other hand, some issues must be addressed when using the naïve Bayes classifier, such as when a given label does not exist within the training set. Issues will be further discussed in \Cref{ch:methodology}.

@@ -1,0 +1,116 @@
+\chapter{Introduction\label{ch:intro}}
+
+This chapter introduces the field of study and provides a context for the research. It aims to motivate the relevance of the research by highlighting the thesis's contributions and key results.
+
+The chapter begins by outlining the motivation behind the thesis in \Cref{sec:motivation-intro}, followed by an overview of this thesis's objectives in \Cref{sec:objective-intro}. Next, \Cref{sec:contribution-intro} provides details on the thesis's contribution before related work is presented in \Cref{sec:related-intro}. The chapter concludes with an outline of the thesis structure in \Cref{sec:outline-intro}.
+
+\clearpage
+
+\section{Motivation\label{sec:motivation-intro}}
+
+\textit{Encryption} is a common technique to preserve confidentiality and users' privacy. Designing secure cryptographic protocols that effectively employ encryption, however, is not easily done. Standard protocols exist that can securely encrypt messages, and these protocols have been subjected to extensive cryptanalysis. However, attackers have proven to be able to exploit information leakage of these protocols to perform an attack. These types of attacks are called side-channel attacks. While the standard protocols are theoretically secure, attackers can recover information about accessed data by analyzing traffic patterns leaked through side channels.
+
+As encryption schemes have developed, researchers have tried to define what security means theoretically. Commonly, these definitions do not incorporate any protection of the message length, i.e., they do not consider leakage of message lengths through side channels. In practice, an attacker can obtain information by observing the lengths of encrypted messages, revealing a gap between theoretical and real-world scenarios, as attackers can obtain the lengths of encrypted messages. Consequently, security definitions need to be broadened to capture the risk of leakage and implement a technique to mitigate it.
+
+The concept of length-hiding encryption schemes was first introduced by Paterson et al. \cite{DBLP:conf/asiacrypt/PatersonRS11}. Their security model describes an encryption algorithm that preserves message confidentiality while concealing the message length through padding prior to encryption. \textit{Padding} involves appending additional data to a message with the primary intention of obscuring the message length. However, \cite{DBLP:conf/acns/TezcanV11} showed the inevitable occurrence of a considerable bandwidth overhead if one wants to hide the length of the messages, highlighting the importance of considering the practical side of padding. The security model put forth by Paterson et al. \cite{DBLP:conf/asiacrypt/PatersonRS11} requires the encryption algorithm to take an additional argument determining the padding applied to a message. A limitation here is that the selection of messages from the application must be chosen based on the choice of this parameter instead of the parameter being chosen to fit all messages from the application.
+
+The notion of length-hiding encryption schemes served as the basis of two subsequent articles \cite{DBLP:conf/ccs/Degabriele21, DBLP:conf/ctrsa/GellertJLN22}. The latter work \cite{DBLP:conf/ctrsa/GellertJLN22} aimed to establish a security model that is independent of any specific application while being capable of capturing application settings. This model extends the security model put forth by Paterson et al. \cite{DBLP:conf/asiacrypt/PatersonRS11}, which demonstrates that under certain assumptions of the encryption scheme, an adversary's success is reduced to the amount of information that is leaked through the ciphertext lengths, called the trivial success probability.
+
+The former \cite{DBLP:conf/ccs/Degabriele21} focused on evaluating the efficiency of different length padding strategies by combining the work of previous studies \cite{DBLP:conf/asiacrypt/PatersonRS11, DBLP:conf/acns/TezcanV11}, demonstrating the same as \cite{DBLP:conf/ctrsa/GellertJLN22}. However, the research paper only addresses length-hiding security and does not consider other characteristics of encrypted traffic. Combining the two research papers \cite{DBLP:conf/ccs/Degabriele21, DBLP:conf/ctrsa/GellertJLN22} indicates that choosing an efficient padding strategy reduces the adversary's success rate. Consequently, this will reduce the attacker's success rate when executing a side-channel attack.
+
+A specific type of side-channel attack is called a website fingerprinting attack, involving an attacker who can monitor encrypted data and traffic patterns to determine which website a user is accessing \cite{DBLP:journals/popets/WangG16}. A malicious actor merely requires the ability to monitor encrypted network traffic and being able to identify web pages visited by a user, as highlighted in several previous papers \cite{DBLP:conf/sp/DyerCRS12, DBLP:conf/ctrsa/GellertJLN22, DBLP:conf/pet/GongBKS12, DBLP:conf/pet/Hintz02, DBLP:conf/pet/MillerHJT14, DBLP:conf/ccnc/MuehlsteinZBKDD17, DBLP:journals/popets/WangG16}. One scenario \cite{DBLP:conf/pet/GongBKS12} demonstrated that an attacker could fingerprint a website without directly observing traffic patterns. According to the paper, the attacker can obtain sufficient information by sending probes from a distant location and exploiting a queuing side-channel in routers. The success rate of the considered attack was highly variable but could still threaten privacy. Another research paper \cite{DBLP:conf/ccnc/MuehlsteinZBKDD17} illustrated how an attacker could utilize supervised machine learning algorithms to automatically categorize data into one or more sets in order to identify individual pages within the same website with a high degree of accuracy. These papers illustrate an attacker's capability to analyze encrypted traffic to determine what a user is accessing online, defeating the security that encryption intuitively should provide. 
+
+While the scenarios and objectives differ for each paper \cite{DBLP:conf/sp/DyerCRS12, DBLP:conf/ctrsa/GellertJLN22, DBLP:conf/pet/GongBKS12, DBLP:conf/pet/Hintz02, DBLP:conf/pet/MillerHJT14, DBLP:conf/ccnc/MuehlsteinZBKDD17, DBLP:journals/popets/WangG16}, they all have two things in common. First, all attacks consider an adversary observing encrypted network traffic on the network layer. While research indicates the possibility of executing a website fingerprinting attack on the network layer, it is not apparent that a similar attack works on a different layer. By moving the scenario down to the data link layer, the encryption scheme hides all data from higher levels, resulting in different data the attacker observes. Second, they all exploit information leakage revealed through encrypted network traffic. The capabilities of an attacker executing a website fingerprinting attack emphasize the importance of the underlying problem: while an encryption scheme may be cryptographically secure, it is not necessarily secure in practice if the encrypted traffic leaks information through side channels.
+
+\section{Objective\label{sec:objective-intro}}
+
+This thesis explores the impact of website fingerprinting attacks on encrypted network traffic on layer two. The objective is to examine the leakage of information through encrypted wireless network traffic in order to determine what a user is accessing in different scenarios.
+
+Building on previous research \cite{DBLP:conf/sp/DyerCRS12, DBLP:conf/ctrsa/GellertJLN22, kohls2019lost} investigating the failure of different padding techniques, length-hiding encryption, and fingerprinting LTE/4G traffic respectively, this thesis takes a different approach. It considers a modified context where an attacker performs a website fingerprinting attack using machine learning, focusing solely on data observed on the data link layer. The accuracy of the website fingerprinting attack is compared to the trivial success probability in one of three scenarios, illustrating the relationship between the attack's performance and the information leaked by the lengths of encrypted messages in a theoretical setting. This comparison sets expectations for 802.11 [\Cref{subsec:wireless-network}] in the absence of mitigating techniques. To the author's knowledge, performing a website fingerprinting attack exploiting information leaked through encrypted wireless traffic has yet to be previously explored.
+
+\subsection{Wi-Fi\label{subsec:wireless-network}}
+
+The IEEE 802.11 standard is primarily a layer two protocol developed to connect devices over a wireless local area in a home or office environment. Today, IEEE 802.11 has developed to be the most widely deployed WLAN (wireless local area network) technology, where the term IEEE 802.11 and Wi-Fi are used interchangeably in literature \cite{banerji2013ieee}. The two most widely used wireless security standards today are WPA2 and WPA3. While the encryption schemes differ, they have in common that they do not hide the lengths of the underlying messages, leaking the length of higher-level protocol messages and potentially making them vulnerable to website fingerprinting attacks.
+
+A risk of wireless networking is that an attacker can eavesdrop on the traffic transmitted between a client and an access point. Eavesdropping can be achieved by configuring the wireless network interface in monitor mode, allowing the attacker to monitor all network traffic received on a wireless channel. As wireless networks operate over radio waves, the network inherently exposes transmitted data to potential attackers and side-channel analysis. The exposing of transmitted data strengthens the issue of information leakage through side channels, such as the size of the messages. The issue is further enhanced as the equipment needed is easily accessible and affordable. Consequently, mitigation techniques, such as padding, must be used to mitigate information leakage of encrypted traffic.
+
+Modern Wi-Fi allows padding in \textit{frame aggregation}, combining multiple data frames into one potentially larger payload. This single frame is transmitted as one unit over lower-level protocols. At the data link layer, frame aggregation is called aggregate MAC service data unit (\textit{A-MSDU}). The concept of A-MSDU will be further explained in \Cref{subsec:aggregation-back}. While A-MSDU enhances throughput, it could also obscure traffic patterns, mitigating website fingerprinting and other side-channel attacks.
+
+\subsection{Research questions\label{sec:questions-intro}}
+The thesis aims to answer the following questions:
+
+\begin{noitemize}
+  \item $\mathbf{Q.1}$ What is the baseline accuracy of an attacker performing a website fingerprinting attack on encrypted Wi-Fi traffic, considering different traffic features and varying conditions?
+  \item $\mathbf{Q.2}$ How does A-MSDU frame aggregation impact the accuracy of a website fingerprinting attack on encrypted Wi-Fi traffic?
+  \item $\mathbf{Q.3}$ How does the accuracy of a website fingerprinting attack on encrypted Wi-Fi traffic compare to the trivial success probability when distinguishing between different data types within a single domain?
+\end{noitemize}
+
+\section{Contribution\label{sec:contribution-intro}}
+
+This thesis's main contribution is demonstrating how an attacker can exploit information leakage of encrypted Wi-Fi frames to execute a website fingerprinting attack. Understanding the impact of such leakage is necessary to determine the severity of the issue. Insights gained from such studies could help in the future development of countermeasures to enhance user privacy online. The accuracy of the website fingerprinting attack executed should be interpreted as a baseline, considering the study's limitations.
+
+The thesis considers a setting where an adversary observes raw encrypted 802.11 frames sent between a client and an access point. The attacker does not need to be associated with the access point or be able to read the decrypted traffic. The only requirement is the ability to observe the headers and the encrypted frames. The aim is to perform the website fingerprinting attack with a relatively high accuracy using a machine learning algorithm, focusing on traffic features related to the encrypted frames. Exploring the impact of website fingerprinting attacks on encrypted Wi-Fi traffic provides the following.
+
+$\textbf{Theoretical security definitions}$. Examining features of encrypted 802.11 frames could enhance security definitions for length-hiding encryption. This information could contribute to the future development of theoretical security.
+
+$\textbf{Privacy risks}$. Performing a website fingerprinting attack illustrates an adversary's capability to invade users' privacy. Suppose the success rate is high. In that case, this could have consequences in other security areas. Insight into the privacy risks is important, as the equipment needed to perform such an attack is easily accessible and affordable.
+
+$\textbf{Future development of countermeasures}$. Understanding the limitations of security protocols' ability to hide information origination from encrypted 802.11 frames can contribute to developing new countermeasures against fingerprinting attacks.
+
+$\textbf{Capabilities of machine learning}$. Acquiring a better understanding of the effectiveness of using machine learning algorithms in website fingerprinting attacks could provide valuable information that could be considered in future discussions of using such algorithms in various parts of society.
+  
+The thesis explores three different website fingerprinting scenarios, termed `simple PDF fingerprinting' \footnote{Technically, only the last two scenarios are technically website fingerprinting attacks, as `simple PDF fingerprinting' involves distinguishing between data within a single web page. However, this scenario is included as a baseline scenario before introducing more complex situations.}, `Wikipedia fingerprinting,' and `domain fingerprinting.' Each scenario considers with and without the use of A-MSDU and uses machine learning to assess the accuracy of the website fingerprinting attack. A comparison between the attack's accuracy and the trivial success probability will also be provided in the `simple PDF fingerprinting' scenario. The scenarios considered can be summarized as follows.
+
+\begin{itemize}
+    \item \textbf{Simple PDF fingerprinting.} This scenario considers a closed environment where the client accesses a primitive web page developed by the author. The web page features a simple front-end hosting numerous PDF files. The attacker's objective is to identify the exact PDF file accessed by the user.
+    
+    \item \textbf{Wikipedia fingerprinting.} The attack progresses from the `simple PDF fingerprinting' scenario and centers on a client accessing Wikipedia pages within a selected subset of available pages. The attacker aims to determine which Wikipedia page the client is accessing, given a chosen subset. 
+    
+    \item \textbf{Domain fingerprinting.} The scope broadens, as the attacker has no prior knowledge of the website the client is accessing. The attacker's objective is to identify the particular domain accessed by the client, given a subset of popular websites.
+\end{itemize}  	
+
+\section{Related work \label{sec:related-intro}}
+
+This section discusses relevant research on the failure of padding techniques as a countermeasure against fingerprinting attacks and fingerprinting LTE/4G traffic.
+
+\subsection{Failure of countermeasures\label{subsec:failure-intro}}
+
+Previous research \cite{DBLP:conf/sp/DyerCRS12} evaluated the effectiveness of different padding techniques employed by modern protocols such as IPsec, TLS, and SSH. These protocols have standardized padding countermeasures \cite{RFC4303, RFC7685, RFC4253} to address issues such as traffic analysis attacks and to prevent message length leakage \cite{DBLP:conf/sp/DegabrieleP07, DBLP:conf/fse/Kelsey02, DBLP:conf/ndss/PatersonA12}.
+
+The research considered HTTP traffic over encrypted tunnels. In this scenario, the attacker possesses prior knowledge of the potential websites a user might visit and the capability of obtaining network traffic metadata. The attacker uses this information to train and test machine learning algorithms on traffic traces, a record of the timings and lengths of ciphertexts. The attacker's goal is to determine the website the user is accessing.
+
+There are several ways of choosing a padding strategy. Due to this, the researchers \cite{DBLP:conf/sp/DyerCRS12} picked various countermeasures and categorized them into three distinct categories: SSH/TLS/IPSec-motivated countermeasures, other padding-based countermeasures, and distribution-based countermeasures. The different types can be viewed in \Cref{fig:paddingtechniques}. These are the countermeasures evaluated in the research paper.
+
+By comparing the most effective padding techniques from each category, their research shows that the attack's acccuracy drops only to roughly $90\%$ for the first two categories, still recognizing the websites with a relatively high accuracy. Even for the best countermeasure in their scenario, the average accuracy for the various machine learning algorithms employed in the research paper only drops to around $85\%$. Their results suggest that the different padding techniques obfuscate some features that can improve security, but an attacker can still identify the different websites with a relatively high accuracy. 
+
+Given the scenario, they conclude that none of the nine countermeasures effectively prevent website fingerprinting attacks. The results indicate that an attacker can identify information originating from coarse features within encrypted traffic with relatively high accuracy. The obtained accuracy is achievable even though the techniques are designed to, among other things, obscure identifiable traffic features through the use of padding and dummy packet insertion. The authors conclude that one should not rely solely on the examined countermeasures to counter website fingerprinting attacks.
+
+Previous research \cite{DBLP:conf/ctrsa/GellertJLN22} focusing on length-hiding encryption has concluded that even a modest amount of padding can substantially reduce the adversary's advantage at the cost of a slight increase in bandwidth overhead. The choice of padding has been further researched in \cite{DBLP:conf/ccs/Degabriele21}, concluding that sampling the padding length from a Gaussian distribution is favorable for two reasons. Firstly, the Gaussian distribution holds a significant role in various aspects of cryptography and, consequently, has received much scrutiny in different settings. Secondly, suppose the ability to hide the message length depends on the padding technique. In that case, the adversary's goal is correlated to being able to distinguish between two distributions given a sample.
+
+Consequently, it appears advantageous to choose a distribution that concentrates their probability mass in the center and exhibits minimal tails. However, it is still necessary to prevent the leakage of padding size information through side-channel attacks. On the other hand, research \cite{DBLP:conf/sp/DyerCRS12} indicates that relying on padding techniques alone does not suffice, as attackers can still perform website fingerprinting attacks with relatively high accuracy. 
+
+\subsection{Fingerprinting LTE/4G traffic\label{sec:LTE-intro}}
+
+Previous work \cite{kohls2019lost} investigated the impact of fingerprinting attacks on encrypted Long Term Evolution (LTE)/4G traffic. Here, the attacker performed a fingerprinting attack exploiting metadata information, having no access to the payload itself or the metadata from the network layer, such as the IP header information of a packet. It is also assumed that the attacker does not know any internal LTE identities but can distinguish multiple device connections. Distinguishing connections allows the adversary to map traffic to connections. The paper is restricted in some areas, such as limited to state-of-the-art machine learning algorithms that exclude deep learning. However, the paper intends to determine if website fingerprinting is possible on LTE traffic.
+
+As highlighted in the paper, there are differences between usual website fingerprinting and fingerprinting LTE traffic. Conventional attacks often require control over physical nodes and adversarial access to the network infrastructure. A passive LTE adversary uses a downlink sniffer to access all transmissions, which uses affordable equipment and can hardly be backtracked. As a consequence, the website fingerprinting attack performed does not require control of any network device, such as a switch or router. Secondly, the metadata information set is different when obtaining traffic.
+
+The research experiment consisted of two parts. First, a private LTE network was created for a controlled lab environment. In this environment, the researchers studied the different factors for website fingerprinting. Based on these factors, the researchers chose an machine learning algorithm. Finally, they turned to a real-world scenario after testing in a controlled lab environment.
+
+The results \cite{kohls2019lost} show that in the controlled lab environment, the attack's success rate was between $92\%$ to $95\%$, while obtaining a success rate of roughly $90\%$ in the real-world scenario. They conclude that the experiment proves the feasibility of fingerprinting LTE traffic.
+
+\clearpage
+
+\section{Outline of the thesis\label{sec:outline-intro}}
+
+\Cref{ch:background} defines the necessary definitions and terminology for understanding security definitions. It will address fundamental wireless network terminology and provide detailed information about protocols used in wireless networks.
+
+\Cref{ch:methodology} formally outlines the framework on which the experiments are based, including the research design, setup, and analytical approach employed in the work. All definitional choices that have been made are discussed and justified in this chapter.
+
+\Cref{ch:result} presents the results of the website fingerprinting attack across different scenarios. It includes visual illustrations of the attack's success rate, comparing the outcomes with and without aggregation. All relevant results obtained will be addressed in this chapter.
+
+\Cref{ch:discussion} discusses the experimental results and implications of the information gained in \Cref{ch:result}. It also offers suggestions for future work.
+
+\Cref{ch:conclusion} concludes this thesis by answering the research questions presented in \Cref{ch:intro} \Cref{sec:questions-intro}.
+
+\Cref{ch:appendixa} and \Cref{ch:appendixb} contains supplementary figures and additional information. It primarily illustrates the format of protocols and provides more detailed insights from previous research.

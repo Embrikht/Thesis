@@ -1,0 +1,42 @@
+\chapter{Conclusion\label{ch:conclusion}}
+
+This chapter will provide a summary and a conclusion to the research questions presented in \Cref{ch:intro} \Cref{sec:questions-intro} in \Cref{sec:summary-conclusion}. The chapter concludes with potential directions for future work in \Cref{sec:future-conclusion}.
+
+\clearpage
+
+\section{Summary\label{sec:summary-conclusion}}
+
+Previous research \cite{DBLP:conf/sp/DyerCRS12, DBLP:conf/ctrsa/GellertJLN22, DBLP:conf/pet/GongBKS12, DBLP:conf/pet/Hintz02, DBLP:conf/pet/MillerHJT14, DBLP:conf/ccnc/MuehlsteinZBKDD17, DBLP:journals/popets/WangG16} has demonstrated the feasibility of performing a fingerprinting attack on encrypted network traffic. However, it is not obvious that such an attack would be effective at the data link layer.
+
+This thesis aims to demonstrate the impact of a website fingerprinting attack on encrypted 802.11 frames and evaluate the information leakage in encrypted wireless network traffic. An experiment was designed with three different scenarios, starting with a controlled scenario with limited variables before gradually moving toward a more realistic one. In each scenario, an attacker used a classifier to execute a website fingerprinting attack, focusing on specific features observed through side channels. The first scenario examined the correlation between the attack's performance and the information leaked through the lengths of encrypted messages in a theoretical setting. The effectiveness of aggregation as a mitigation technique was also assessed, with each scenario considered with and without aggregation. The results answer the following research questions.
+\\
+\\
+\textbf{$\mathbf{Q.1}$ What is the baseline accuracy of an attacker performing a website fingerprinting attack on encrypted Wi-Fi traffic, considering different traffic features and varying conditions?}
+
+When distinguishing between two data types, an attacker can achieve a minimum accuracy of $95\%$, which drops to at least $72\%$ when distinguishing between $30$ different types of data. If the attacker's aim is distinguishing different domains, the accuracy increases to approximately $99\%$ and $92\%$, respectively. While the classifier's accuracy varies depending on the scenario considered, the achieved accuracy is still significantly higher than guessing uniformly at random. The results highlight the feasibility of performing website fingerprinting attacks on encrypted 802.11 frames, illustrating how information leakage undermines the security that encryption intuitively should provide.
+\\
+\\
+\textbf{$\mathbf{Q.2}$ How does A-MSDU frame aggregation impact the accuracy of a website fingerprinting attack on encrypted Wi-Fi traffic?}
+
+The results suggest that aggregation reduces the classifier's accuracy, even though the reduction is minimal and does not prevent an attacker from successfully performing a website fingerprinting attack. Findings suggest that aggregation can even aid the classifier in distinguishing types of traffic, such as when the classifier is trained on traffic patterns like traffic bursts. Despite aggregation being unable to protect against website fingerprinting attacks, it still reduces the header overhead and improves bandwidth throughput.
+\\
+\\
+\textbf{$\mathbf{Q.3}$ How does the accuracy of a website fingerprinting attack on encrypted Wi-Fi traffic compare to the trivial success probability when distinguishing between different data types within a single domain?}
+  
+By comparing the trivial advantage, based on the trivial success probability, with the accuracy of the website fingerprinting attack, the results show that the trivial success probability does not accurately reflect the success rate of an attacker performing the attack. However, using the theoretical model as a starting point still offers insights into how message length leaks through encrypted 802.11 frames via side channels, indicating what to expect from the 802.11 standard in the absence of mitigation techniques.
+
+\section{Future work\label{sec:future-conclusion}}
+
+This thesis's data collection and analysis have demonstrated the feasibility of an attacker executing a website fingerprinting attack on encrypted 802.11 frames. The results illustrate the effectiveness of using machine learning algorithms to achieve high accuracy and demonstrate the difficulty of hiding information leakage of encrypted traffic.
+
+Based on the findings and limitations of this thesis, future work should consider the following.
+
+\begin{itemize}
+	\item{\textbf{Obtaining quality data:}} Two computers physically connected are considered in this thesis, ensuring the attacker can obtain quality data to train the classifier. However, in a real-world scenario, a challenge is how an attacker can observe encrypted traffic and confidently split it to distinguish between data from different applications. Solving this well-known issue could add to the attacker's capability and enable them to perform fingerprinting attacks in parallel, targeting multiple clients simultaneously. Future research could focus on how an adversary could confidently differentiate data types by purely focusing on encrypted 802.11 frames when executing a website fingerprinting attack. 
+	
+	\item{\textbf{Aggregation:}} While this thesis explores aggregation as a padding technique to reduce the success rate of an attacker performing a website fingerprinting attack, future research could examine two aspects. First, it could investigate whether A-MSDU can improve the accuracy in specific situations and identify the threshold at which it begins to either increase or decrease the accuracy of the classifier. Second, it could examine how reducing the size of MSDUs within A-MSDU impacts the accuracy of website fingerprinting attacks in various scenarios. However, one should not rely on aggregation as the only defense against such attacks. Future research should not expect A-MSDU to prevent such attacks.
+	
+	\item{\textbf{Theoretical security:}} This thesis draws on the theoretical model in \cite{DBLP:conf/ctrsa/GellertJLN22}; future work could extend this model to capture other features leaked through side channels, examining how they impact the trivial success probability of an attacker. This would help bridge the gap between theoretical and practical settings. If the theoretical model could capture different features, it would provide deeper insights into an attacker's success rate within a theoretical framework.
+\end{itemize}
+
+\clearpage

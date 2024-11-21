@@ -1,0 +1,45 @@
+\begin{titlepage}
+\chapter[Appendix]{Padding strategies\label{ch:appendixb}}
+
+\begin{figure}
+\resizebox{\textwidth}{!}{\begin{tabular}{|p{2cm}|p{9.5cm}|}
+\hline
+\multicolumn{2}{|c|}{\textbf{Type-1: SSH/TLS/IPsec-Motivated countermeasures}} \\
+\hline
+\scriptsize \textbf{Session \newline Random 255} &
+\scriptsize Apply a single amount of padding to all plaintexts in the session. Sample uniformly at random a value $r$ such that
+$r \in \{ x | x = 8n \,\ \text{for} \ n \in \mathbb{N} \  \text{and} \ 0 \leq x \leq$ 248\footnote{Assume that the size of the underlying encryption block size is 8 bytes. This is true for the Liberatore and Levine dataset.}\}. \newline  For every packet in the trace, increase the packet length by $r$ or up to the MTU\footnote{The maximum transmission unit (MTU) is the largest size frame that can be transmitted across the data link.}. \\
+\hline
+\scriptsize \textbf{Packet \newline Random 255} &
+\scriptsize Sample uniformly at random a value $r$ for each single packet $P$, where \newline
+$r \in \{ x | x = 8n \,\ \text{for} \ n \in \mathbb{N} \  \text{and} \ 0 \leq x \leq$ 248 \}. \newline  Increase the padding length by $r$ up to the MTU.\\
+\hline
+\multicolumn{2}{|c|}{\textbf{Type-2: Other Padding-based countermeasures}} \\
+\hline
+\scriptsize \textbf{Linear \newline Padding:} &
+\scriptsize Increase the packet length to the nearest multiple of 128 or the MTU, whichever is smaller. \\
+\hline
+\scriptsize \textbf{Exponential \newline Padding:} &
+\scriptsize Increase the packet length to the nearest power of 2 or the MTU, whichever is smaller. \\
+\hline
+\scriptsize \textbf{Mice-Elephants \newline Padding:} &
+\scriptsize For a packet $P$ with length $|P|$ do the following: \newline If $|P| \leq$ 128, then pad the packet $P$ to 128. If not, then pad the packet $P$ to the MTU. \\
+\hline
+\scriptsize \textbf{Pad To MTU:} &
+\scriptsize All packets are padded to the MTU. \\
+\hline
+\scriptsize \textbf{Packet Random \newline MTU Padding:} &
+\scriptsize Sample uniformly at random a value $r$ for each packet $P$, where \newline $r \in \{ x | x=8n \ \text{for} \ n \in \mathbb{N} \ \text{and} \ 0 \leq x \leq$ MTU $- |P| \}$. Increase the packet length by $r$. \\
+\hline
+\multicolumn{2}{|c|}{\textbf{Type-3: Distribution-based countermeasures}} \\
+\hline
+\scriptsize \textbf{Direct Target \newline Sampling:} & \multirow{3}{*}{\scriptsize Two different padding countermeasures.} \\ \cline{1-1}
+\scriptsize \textbf{Traffic \newline Morphing:} &
+\scriptsize Both enlarge a protocol's packet by padding and chopping, with the intention of deceiving an attacker. This is done by making it look like the enlarged packets come from a different web pages which is pre-defined.\\
+\hline
+\end{tabular}}
+\caption{Table of various padding strategies categorized.}
+\label{fig:paddingtechniques}
+\end{figure}
+
+\end{titlepage}

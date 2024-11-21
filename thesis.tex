@@ -1,0 +1,202 @@
+\documentclass[b5paper, twoside, openright, UKenglish]{uiomasterthesis}
+
+% \documentclass[b6paper]{report}
+% \usepackage[lmargin=25mm, rmargin=25mm, tmargin=27mm, bmargin=30mm]{geometry}
+% \usepackage[tmargin=27mm, bmargin=30mm]{geometry}
+% \usepackage[a4,center,frame]{crop}
+
+\usepackage{varioref}
+\usepackage{epigraph}
+\usepackage{siunitx}
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+\usepackage{booktabs}
+\usepackage[T1]{fontenc}
+\usepackage[toc]{appendix}
+\usepackage{setspace}
+\usepackage[hang, flushmargin]{footmisc}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\newcommand{\minus}[1]{\scalebox{0.9}{$-$}}
+\usepackage{marvosym}
+\newcommand\blitz{\textup{\Lightning}}
+\usepackage{relsize}
+\usepackage{makecell}
+\usepackage{color}
+\usepackage{graphicx}
+\newcommand{\implyarrow}{%
+  \mathrel{\text{\raisebox{1.3ex}{\rotatebox[origin=c]{90}{\mathhexbox37F}}}}}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{bytefield}
+\usepackage{uiomasterfp}
+\usepackage[colorlinks,linkcolor=theme1, linktocpage,citecolor=theme2,urlcolor=theme3,backref=page,pdfusetitle]{hyperref}
+\usepackage[numbered]{bookmark}
+%\usepackage{footnotebackref}
+\usepackage[nameinlink, capitalize]{cleveref}
+\Crefname{figure}{Fig.}{Figs.}    % Capitalized for single and plural
+\Crefname{section}{Section}{Sections}  % Capitalized for single and plural
+\crefname{lstlisting}{Listing}{Listings}
+\usepackage[colorinlistoftodos,
+            textsize=footnotesize,
+            linecolor=none,
+            bordercolor=none,
+            backgroundcolor=none]{todonotes}
+
+% \usepackage{libertinust1math}
+\usepackage{euler}
+\usepackage{libertine}
+\usepackage{inconsolata}
+
+% New implies and more
+\usepackage{pgf}
+\makeatletter
+\newdimen\@widthOfTo%
+\newdimen\@widthOfLand%
+\newdimen\@widthOfImplies%
+\settowidth{\@widthOfTo}{$\to$}%
+\settowidth{\@widthOfLand}{$\land$}%
+\settowidth{\@widthOfImplies}{$\Longrightarrow$}%
+\pgfmathsetmacro{\@scaleFactorImplies}{\@widthOfTo/\@widthOfImplies}%
+\pgfmathsetmacro{\@scaleFactorTo}{\@widthOfLand/\@widthOfTo}%
+\newcommand*{\ScaledImplies}{\mathrel{\raisebox{0.3ex}{\scalebox{\@scaleFactorImplies}{\ensuremath{\Longrightarrow}}}}}%
+\newcommand*{\ScaledTo}{\mathbin{\raisebox{0.3ex}{\scalebox{\@scaleFactorTo}{\ensuremath{\to}}}}}%
+\makeatother
+
+\usepackage{listings}
+% \usepackage{parskip}
+\usepackage{wrapfig}
+\usepackage[labelfont=bf]{caption}
+\usepackage[labelfont=bf]{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes,decorations,decorations.markings,calc,fit,arrows.meta,backgrounds,shapes.arrows,shapes.geometric, matrix}
+\usepackage[inline,shortlabels]{enumitem}
+\newlist{noitemize}{itemize}{1}
+\setlist[noitemize]{label={}, leftmargin=\parindent}
+\usepackage{xcolor}
+\usepackage{longtable}\usepackage[automake,acronym,nohypertypes={acronym}]{glossaries}
+\usepackage{titlesec}
+\usepackage{blindtext}
+\usepackage{microtype}
+\usepackage{clrscode3e}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+\usepackage{enumitem}
+
+\usepackage{fancyhdr}
+\usepackage{afterpage}
+\fancyhf{}
+%\fancyhead[LO,RE]{\textsc{\leftmark}}
+\fancyhead[RO,LE]{\textsc{\rightmark}}
+\renewcommand{\headrulewidth}{1pt}
+
+\titleformat{\part}[display]
+  {\center}
+  {\Large\scshape{\partname} \thepart}
+  {0ex}
+  {\Huge}
+
+\titleformat{\chapter}[display]
+  {\center\vspace{2cm}}
+  {\large\scshape{\chaptertitlename} \thechapter}
+  {0ex}
+  {\huge\thispagestyle{empty}}
+
+\titleformat*{\section}{\Large}
+\titleformat*{\subsection}{\large}
+\titleformat*{\subsubsection}{\bfseries\normalsize}
+
+\catcode`_=12
+\begingroup\lccode`~=`_\lowercase{\endgroup\let~\sb}
+
+% Hack to make parskip and amsthm go well together.
+% \begingroup
+%     \makeatletter
+%     \@for\theoremstyle:=definition,remark,plain\do{%
+%         \expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{%
+%             \addtolength\thm@preskip\parskip
+%             }}
+% \endgroup
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\algrenewcommand{\algorithmiccomment}[1]{\hskip3em\textcolor{blue}{\hfill \footnotesize // #1}}
+\newcommand{\Exp}[3]{\mathbf{Exp}_{#1}^{\operatorname{\mathsf{#2}}}(#3)}
+\newcommand{\Adv}[3]{\mathbf{Adv}_{#1}^{\operatorname{\mathsf{#2}}}(#3)}
+\newcommand{\KeyGen}{\mathsf{KeyGen}}
+\newcommand{\Enc}{\mathsf{Enc}}
+\newcommand{\Dec}{\mathsf{Dec}}
+\newcommand{\A}[1][A]{\mathcal{#1}}
+\newcommand{\leftrandom}{\overset{\$}{\leftarrow}}
+\def\arrvline{\hfil\kern\arraycolsep\vline\kern-\arraycolsep\hfilneg}
+\makeglossaries{}
+
+% For the main page of the thesis
+\title{Website fingerprinting of encrypted Wi-Fi traffic}
+\subtitle{Information disclosure through side-channel exploitation}
+\author{Embrik Hafskjold Thoresen}
+
+\begin{document}
+\renewcommand{\thepage}{\roman{page}}%
+\uiomasterfp[dept={Department of Informatics},
+  program={Informatics: Information Security},
+  supervisors={Håkon Jacobsen, Nils Gruschka},
+  long]
+
+\input{macros.tex}
+
+\afterpage{\cfoot{\thepage}}
+
+\setcounter{page}{1}
+\input{chapters/abstract}
+\null\clearpage
+
+\input{chapters/acknowledgements}
+\null\clearpage
+
+\tableofcontents
+% \listoffigures%
+% \listoftables%
+
+% \listoftodos[Resolve These Things]
+\afterpage{\cfoot{\thepage}}
+\clearpage\null%
+\clearpage\setcounter{page}{1}%breakbreak
+\renewcommand{\thepage}{\arabic{page}}%
+
+
+\pagestyle{fancy}
+
+\input{chapters/introduction.tex}
+
+\input{chapters/background.tex}
+
+\input{chapters/methodology.tex}
+
+\input{chapters/results.tex}
+
+\input{chapters/discussion.tex}
+
+\input{chapters/conclusion.tex}
+
+\bibliographystyle{acm}
+\bibliography{sources.bib}
+\addcontentsline{toc}{chapter}{Bibliography}
+
+\begin{appendices}
+\appendix
+\input{chapters/appendixa.tex}
+\input{chapters/appendixb.tex}
+\end{appendices}
+
+\end{document}

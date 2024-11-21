@@ -1,0 +1,243 @@
+\chapter{Methodology\label{ch:methodology}}
+
+The aim of this chapter is to describe the methodology and offer an overview of the practical aspects of the experiment conducted in this thesis. It highlights the factors that need to be considered when analyzing the results.
+
+The chapter begins by outlining the research design in \Cref{sec:design-methodology}, followed by a detailed explanation of the setup in \Cref{sec:setup-methodology}. The analytical approach is then addressed in \Cref{sec:method-methodology} before the chapter concludes with a justification of the different aspects of the thesis in \Cref{sec:limitations-methodology}.
+
+\afterpage{\cfoot{\thepage}}
+
+\clearpage
+
+
+\section{Research design\label{sec:design-methodology}}
+
+The study follows an experimental research design, adopting a quantitative research method approach. The choice of a quantitative research approach is determined by the requirements of using machine learning algorithms. The rationale for experimenting is to simulate a real-world scenario closely, providing insight into the success rate of a real-world attacker performing website fingerprinting using the same techniques as previous research. 
+
+The experiment is split into three key stages: data collection, feature extraction and sanitation, and machine learning classification. Data collection involves using a single computer to generate traffic using Python scripts and a single computer capturing the traffic using a packet capture tool. The data is filtered to extract specific features using Python scripts, then pre-processed and classified using a data analysis library in Python. Details regarding software and tools used in the thesis are elaborated in \Cref{subsec:software-methodology}. Finally, the classifiers are trained, and the performance of the attack is evaluated in line with the research objectives.
+
+\section{Setup\label{sec:setup-methodology}}
+
+This section will cover this thesis's logical and physical components, software, and tools. The setup is covered before the method's explanation to give the reader a better understanding of the analytical approach.
+
+\subsection{Logical components\label{subsec:network-methodology}}
+
+The different logical components in this thesis are a web server hosting a website, a client, a wireless access point, an attacker, and the classifier. While the distribution system is a main component of 802.11, this thesis does not consider it. Figure \Cref{fig:logicalcomponents} illustrates the different logical components and their connection within this experiment. The logical components are the following.
+
+\begin{figure}
+        \includegraphics[clip, trim=2cm 4cm 3.5cm 1cm, width=0.95\textwidth]{experiment.pdf}
+        \caption{The logical components of the experiment. The red box demonstrates the setting this experiment considers.}
+    \label{fig:logicalcomponents}
+\end{figure}
+
+First, a virtual server provided by `is*hosting '\footnote{https://ishosting.com/en/about}, a hosting company, is used to host the website. The virtual server is located in Norway and operates on Ubuntu 22 x64 as its operating system. The website is served using the open-source web server nginx\footnote{https://nginx.org/en/}, using a PHP script that dynamically displays various PDF files stored on the server. Nginx was chosen as the web server due to its popularity and ability to serve static content quickly. The PHP script generates a webpage with a header and a table of rows and columns. Each row represents a single PDF file, where each row has three columns: the name of the PDF file with a small PDF icon displayed next to the name, the size of the PDF file measured in bytes, and the upload date of the PDF file. An illustration of the website's front-end is shown in \cref{fig:website-front}. The website can be accessed at \url{https://uioencryptedtraffic.no}.
+
+Second, the client is a logical component that can retrieve data from the web server by performing a GET request. It generates traffic within the network according to a specific format. This is further discussed in \Cref{subsec:collection-methodology}. During the experiment, the client is a single desktop computer associated with a wireless access point. The client is the only entity generating traffic within the network.
+
+Third, the wireless access point is the logical component connecting the client to the web server. All data transmitted from the client is forwarded to the access point, where the payload is encrypted. The wireless access point then forwards the data to the distribution system. For the scope of this thesis, a single wireless access point is considered where the data flow between the access point and the web server is disregarded.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=0.6\textwidth]{website_front.png}
+           \caption{Screenshot of the website with domain name \url{uioencryptedtraffic.no}}
+    \label{fig:website-front}
+\end{figure}
+
+Fourth, the attacker is the logical component capable of monitoring all network traffic received on a wireless channel, including the observation of raw 802.11 frames, and is achieved by configuring the wireless network interface in monitor mode. The thesis considers a single attacker capable of observing the MAC header, CCMP header, and the encrypted payload and calculating metadata from the various packets transmitted over the medium. Additionally, the attacker neither controls the wireless access point nor is associated with the wireless access point. The attacker cannot access the decrypted payload.
+
+Lastly, the classifier is the final logical component. The attacker trains the classifier by providing data that can be split into two groups: the features and the answer. The features consist of metadata from the encrypted network traffic. The classifier predicts the answer based on the provided features. The classifier's prediction determines the type of PDF file the client fetches or the web page the client is accessing. 
+
+\subsection{Physical components\label{subsec:physical-methodology}}
+
+This thesis utilizes various physical components: a desktop computer, a laptop computer, and an access point. The virtual server is not considered a physical component due to a lack of accessible information regarding the company's different components.
+
+The desktop computer runs on Microsoft Windows 11 Home and has a TUF GAMING B650-PLUS Wi-Fi motherboard with an x86_64 architecture. It uses a MediaTek Wi-Fi 6 MT7921 Wireless LAN card network adapter and an ASUS 2T2R Dual Band Wi-Fi moving antenna to connect to the wireless access point.
+
+The laptop computer is a Huawei Notebook with a WRT-WX9-PCB M1010 motherboard with an x86_64 architecture. Its network card is an Intel Cannon Point-LP CNVi [Wireless-AC], operating using the wireless driver `iwlwifi' with driver version 5.4.0-174-generic.
+
+The wireless access point is a PC Engines APU2 x86_64 single-board computer. It operates on an OpenWrt operating system version 23.05.0. OpenWrt is an open-source project based on Linux that was developed for embedded systems and primarily used on devices tasked with routing network traffic. The access point has an AMD GX-412TC SOC chip with a 1 GHz quad Jaguar core with 64-bit architecture. It has a Qualcomm Atheros QCA9880 802.11ac/b/g/n wireless chipset and a wle600vx wireless Wi-Fi kit. The wireless access point is physically connected to a functioning router using an ethernet cable. This router is linked to the broader network through fiber optic cables and an Internet service provider. Only the PC Engines APU2 is considered when referring to the wireless access point.
+
+\subsection{Software and tools\label{subsec:software-methodology}}
+
+$\mathbf{Aircrack\text{-}ng}:$ Aircrack-ng\footnote[1]{https://www.aircrack-ng.org/} is a suite of tools focusing on different areas of Wi-Fi security in order to assess Wi-Fi network security. These areas are monitoring, attacking, testing, and cracking. All tools are command-line tools working primarily on Linux, although they are compatible with other operating systems. In this thesis, the airmon-ng and airodump-ng command line tools are utilized. Airmon-ng\footnote[2]{https://www.aircrack-ng.org/doku.php?id=airmon-ng} is a script allowing the user to move between monitor mode and managed mode. Airmon-ng intends primarily to allow a user to enable monitor mode on a wireless interface. Airodump-ng\footnote[3]{https://www.aircrack-ng.org/doku.php?id=airodump-ng} is a tool for capturing raw 802.11 frames. When executed, several files containing details of the captured data are generated. Numerous options can be specified when utilizing the airodump-ng tool.
+
+\begin{noitemize}
+    \item $\textbf{- - channel}:$ This option allows the attacker to specify what channel to listen to when capturing the raw 802.11 frames.
+    \item $\textbf{- - bssid}:$ This option allows the attacker to filter access points using the BSSID value.
+    \item $\textbf{- - write}:$ This option is used to determine the prefix name of the output file after capturing data.
+\end{noitemize}
+
+$\mathbf{Scikit\text{-}learn:}$ Scikit-learn \cite{scikit-learn} is a free open-source library for machine learning in Python. It is a simple and efficient tool built on SciPy, Matplotlib, and NumPy libraries. The Scikit-learn library contains various algorithms for implementing machine learning algorithms for supervised and unsupervised learning. Among these is the classifier Gaussian Naïve-Bayes.
+
+$\mathbf{Python}:$ Python\footnote[4]{https://wiki.python.org/moin/BeginnersGuide/Overview} is a high-level open-source language that comes with several notable features, including an extensive standard library and is easily extended by integrating new modules coded in a compiled language. An example of a built-in module is the socket module, which enables socket programming in Python. Utilizing libraries such as Scapy, NumPy, Matplotlib, and Pandas allows files to be processed for machine learning purposes and data for visual content to be plotted.
+
+$\mathbf{Jupyter \ Notebook:}$ Jupyter Notebook\footnote[5]{https://jupyter-notebook.readthedocs.io/en/stable/} is a part of the project Jupyter, a free open standards software for interactive computing through a web-based interface. It supports many programming languages, where users typically use Jupyter Notebook using computational notebooks. Computational notebooks are frequently used for data science, scientific computing, and machine learning. These notebooks provide a fast, interactive environment to run live code and visualize data through creating and running cells within a single notebook. Using notebooks is favorable for analyzing and sanitizing data for data preprocessing before utilizing machine learning algorithms.
+
+\section{Method\label{sec:method-methodology}}
+
+This section will address the analytical approach in the work and justify the chosen approach. The method is divided into two parts: the data collection process and the data analysis procedure. It is important to mention that all scripts used in this thesis are written in Python and executed directly in the terminal of the Linux computer or the terminal window of the Windows computer in use. 
+
+\subsection{Collection of data\label{subsec:collection-methodology}}
+
+Data collection occurs in three stages: preparing web pages to be accessed, the client generating network traffic, and the attacker performing the website fingerprinting attack. Both network traffic generation and the attack take place within the author's apartment. The process of the attacker performing the website fingerprinting attack remains consistent across scenarios.
+
+In all scenarios, the client fetches data by executing a script that makes a GET request to a given web page. Given a scenario, an experiment is defined given a classifier and three values: $q$, $k$, and $t$. The number $q$ represents the number of traces performed for a given data. A \textit{trace} is defined as the encrypted traffic of a single \texttt{GET} request and response to a web page. The number $k$ decides the size of the privacy set \footnote{Privacy set is also called anonymity-set. See \cite{wang2014effective}.} used for a \textit{trial}. A single experiment consists of $t$ number of trials. For all scenarios, the value of $q$ is set to $20$, and the value $t$ is chosen such that $t = \lceil \tfrac{4000}{k \cdot 20} \rceil$. To prevent any caching during the session, a header $h$ is provided as a parameter to the GET request, ensuring that the server side or any proxy does not cache each request. The result is not cached locally. Additionally, \texttt{time.sleep()} is used between GET requests, introducing a time pause of one second between fetching of data. Justification for the choice of parameters and the use of \texttt{time.sleep()} is further explained in \Cref{sec:limitations-methodology}. Finally, the different experiments were conducted between the 26th of September and the 13th of October 2024. \\
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{wfsss1.png}
+         \caption{Illustration of the simple PDF fingerprinting scenario.}
+    \label{fig:wfsss1}
+\end{figure}
+
+The web page preparation and network traffic generation vary depending on the scenario in focus. The scenarios consist of the following.\\
+
+$\textbf{Simple PDF fingerprinting}$: The preparation begins with creating a web page hosted on a web server storing PDF files. The PDF files stored on the web server originate from the Cryptology ePrint Archive website, accessible through the URL: \url{https://eprint.iacr.org}. This website provides easy access to recent research within the field of cryptology, published by researchers without undergoing any refereeing process beforehand. The PDF files displayed on the website are pre-fetched and uploaded before the experiment.
+
+There are two reasons for choosing the ePrint archive as our data source before the experiment. First, the ePrint website is easily iterable for fetching different PDF files. Each specific PDF file can be accessed by modifying the ULR accordingly:
+\begin{equation*}
+\{original\text{_}URL\}/\{published\text{_}year\}/\{publish\text{_}number\}.pdf
+\end{equation*}
+
+Second, the website contains many PDF files of different lengths, so it stands out as a suitable candidate for our experiment. This arises from the experiment's closed setting, involving limited variables and a fixed size of the data used by the machine learning algorithms. PDF files follow a specific format, which suits the purpose of the experiment, and it allows the author to control the static data on the website.
+
+The script for fetching PDF files from the Cryptology ePrint Archive website was executed on the 25th of Mars from 09:00 to 10:00 at the University of Oslo. It iterates through each year from $2010$ to $2018$, choosing $n$ number of files uniformly at random. Each selected file is added to a set to prevent duplicates, and all files are appended to a folder locally. The folder is uploaded to the web page after the script has terminated. The web page contains a total of $900$ different PDF files, $100$ PDF files for each year. The fetched files are uploaded to the web page remotely using SSH.
+
+Before generating network traffic, a basic SQLite database is created. Each entry in this database includes a unique identifier, the name of a PDF file stored on the web page, and the PDF file size measured in bytes. A script is executed to gather and store all information about the PDF files on the web page in this database. This database is later used to calculate the trivial success probability after completing the experiment.
+
+This thesis adopts the same message distribution as Gellert et al. \cite{DBLP:conf/ctrsa/GellertJLN22}, the uniform distribution. Let $|\mathbf{pad}(m,\ell)| = \Bigl\lceil \tfrac{|m|}{\ell} \Bigr\rceil \cdot \ell$, and $\mathcal{M} = \{m_{1}, m_{2} ... , m_{900}\}$ be the set of all $900$ different PDF files stores on the web server. In this scenario, the adversary aims to determine which PDF file the client is accessing. Therefore, the adversary's output in the theoretical model is an index $i \in \{ 1, 2, ... , 900\}$ such that $\mathcal{P}: \mathcal{M} \rightarrow [1,900]$ for $m_{i} \mapsto i$. The trivial advantage [\Cref{trivadv}] is calculated by considering different values of $\ell$, investigating how the trivial advantage decreases as the size of $\ell$ increases. This thesis considers, among others, two special values of $\ell$: the value at which the number of uniquely identifiable PDF files is $0$ and the value at which all PDF files have the same length.
+
+There are two reasons for focusing on the theoretical setting and calculating the trivial success probability. First, the thesis assumes the use of the CCMP-128 encryption protocol. The payload length can be deduced by observing the encrypted 802.11 frames, given how the encryption protocol operates [see \Cref{subsec:paddingwpa-back}]. Since CCMP-128 does not include padding by default, there exists a near one-to-one correspondence between the lengths of the PDF files and the corresponding encrypted 802.11 frames in practical scenarios. As a result, focusing solely on the lengths of the PDF files allows trivial advantage (using the trivial success probability) to highlight the leakage of message length through encrypted 802.11 frames. Second, this approach enables a comparison between the success of an adversary performing a website fingerprinting attack and the theoretical trivial advantage, which could provide a better understanding of how the theoretical measure of advantage relates to the actual performance of a website fingerprinting attack.
+
+Network traffic generation begins with the client iterating through the web page to compile a list of all available PDF files. Subsequently, the client fetches $k$ PDF files uniformly at random, with each PDF file fetched $20$ times. An illustration of the scenario can be viewed in \Cref{fig:wfsss1}. \\
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{wfsss2.png}
+           \caption{Illustration of the Wikipedia fingerprinting scenario.}
+    \label{fig:wfsss2}
+\end{figure}
+
+$\textbf{Wikipedia fingerprinting}$: The preparation begins with running a script that performs $k$ GET requests to \url{https://en.wikipedia.org/wiki/Special:Random}, a Wikipedia URL used to access a random article in the main namespace \footnote{Techniqually the URL  is pseudorandom, see https://en.wikipedia.org/wiki/Wikipedia:FAQ/Technical\#random}. The URLs fetched from the GET requests are stored in a list and checked during the fetching process to prevent duplicates. The result is the privacy set used during the trial. 
+
+There are two reasons for focusing on Wikipedia articles. First, Wikipedia is a public, commonly used website, where the English Wikipedia \footnote{https://en.wikipedia.org/wiki/Wikipedia} has approximately $6.9$ million articles with more than $1.5$ billion device visits monthly. Utilizing Wikipedia articles will, therefore, result in different results concerning the sizes of web pages fetched for our set within a trial. However, it is also convenient as a random article can be easily accessed using a single URL. Second, while the sizes of Wikipedia pages may differ, the format is more or less the same for each article. Many components found on each webpage are independent of the specific article accessed.
+
+The difference is partially because of the number of characters displayed on the page and possible different file formats such as JPG, SVG, or tables. As a result, while many components are the same, the length of the webpage measured in bytes is different, reflecting the experiment's intention. Therefore, when changing the context from a closed limited setting (simple PDF fingerprinting scenario) to a more real-world context, Wikipedia seems a suitable candidate.
+
+The client generates network traffic by iterating through the list from the first element to the last element within the list of $k$ ULRs. The client then performs $20$ GET requests per URL chosen. \Cref{fig:wfsss2} illustrates the scenario. \\
+
+$\textbf{Domain fingerprinting}$: The preparation begins with obtaining a ranking of popular web pages frequently accessed worldwide, including subdomains. This thesis utilizes the Tranco list \footnote{https://tranco-list.eu/list/83PGV} generated on 11 September 2024, a research-oriented top site ranking. The Tranco list aggregates data from various rankings, including those provided by Google, Cloudflare, and Cisco. Not all GET requests for entries in the Tranco list returned a status code of $200$. Consequently, the experiment uses the top $8000$ entries from the Tranco list that responded with a status code $200$. The list was pre-fetched before the experiment commenced.
+
+There are two reasons for using the Tranco list in this thesis. First, the researchers behind the Tranco list \cite{LePochat2019} demonstrated that other commonly used rankings, such as the Majestic Million list and the Radar list, have notable shortcomings. The Tranco list was created to address issues such as vulnerability to manipulation and inconsistencies in determining the most popular domains. Second, the Tranco list offers improved stability over time where the methodology is fully detailed\footnote{https://tranco-list.eu/methodology}, the properties of the source lists are explained in detail, and the researchers have published the source code for generating the list. These properties and the transparency enhance the credibility of the ranking.
+
+The experiment starts with the client uniformly randomly picking $k$ unique domains from the Tranco list. Each domain is stored in a local list. The client then iterates through each domain in the list and performs $20$ GET requests per domain. \Cref{fig:wfsss3} illustrates the domain fingerprinting scenario.\\
+
+The final data collection stage involves the attacker performing the fingerprinting attack, independent of the scenario in focus. This process begins with the attacker using the Aircrack-ng suite to check and terminate interfering processes and switch the network card from managed mode to monitor mode. The attacker proceeds to execute a script establishing a connection between the client and the attacker using socket programming in Python. The script continuously listens to a signal from the client's computer. Based on the signal received, one of four actions is triggered:
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{wfsss3.png}
+        \caption{Illustration of the domain fingerprinting scenario.}
+    \label{fig:wfsss3}
+\end{figure}
+
+\begin{noitemize}
+    \item $\textbf{'START_CAPTURE'}:$ The attacker starts capturing network traffic. This signal is before the client performs a GET request to a website.
+    \item $\textbf{'STOP_CAPTURE'}:$ The attacker stops capturing network traffic. This signal is sent after the GET response from a website.
+    \item $\textbf{'Answer:'}:$ The attacker receives the name of the accessed PDF file or web page. This information is essential for training the classifier. Depending on the scenario, this signal is sent after fetching a PDF file or web page.
+    \item $\textbf{'STOP_SCRIPT'}:$ The attacker exists the script. The signal indicates that the experiment is finished.
+\end{noitemize}
+
+Capturing encrypted 802.11 frames is done using airodump-ng within the Aircrack-ng suite, using the options outlined in \Cref{subsec:software-methodology}. After capturing the encrypted traffic, the attacker obtains PCAP files with information such as the MAC header, CCMP header, and the encrypted payload, which can be used to calculate metadata from the different packets transmitted over the medium. The adversary can distinguish multiple device connections using MAC addresses, allowing the adversary to map traffic to connections. However, this is irrelevant since this thesis considers a single client within the network.
+
+Three main reasons exist for using the specific options outlined in \Cref{subsec:software-methodology} when capturing encrypted 802.11 frames. First, the attacker must not be associated with the access point during the experiment. However, this also means the attacker risks capturing a large amount of data sent between different access points and clients. These options enable the attacker to filter out unwanted traffic from other networks, reducing noise and increasing the likelihood that the captured 802.11 frames correspond directly to the GET requests and responses. Second, the captured data may be saved to a file with a simpler name for later use. Finally, these options help preserve the privacy of other users, allowing the experiment to be conducted ethically by focusing solely on the private network and avoiding external traffic.
+
+\subsection{Filtering and selection of data\label{subsec:cleaning-methodology}}
+
+The attacker possesses PCAP files extracted from the captured encrypted network traffic and starts filtering by iterating through the files. For each PCAP file, the attacker filters out all packet data frames with a specific packet type, packet subtype, CCMP header, and 802.11 frame header. The filtering process ensures the packets considered are encrypted 802.11 data frames that transmit data between the client and the access point. Given a packet, a 6-tuple of information is appended to a set before processing a data frame, used to check for retransmissions. 
+
+The selection of features originates from previous research \cite{DBLP:conf/sp/DyerCRS12} considering different features for training classifiers. The thesis explores two cases: focusing solely on packet lengths with directionality or focusing on total trace time, upstream/downstream total bytes, number of traffic bursts, and bytes in traffic bursts. In both cases, the script iterates through each PCAP file present, calculates features, and writes the features to a CSV file. The resulting CSV file contains features representing PCAP files. The choice of features in focus is further discussed in \Cref{sec:justification-methodology}.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{csv_length.png}
+        \caption{Illustration of the CSV file format considering only packet lengths with directionality as feature.}
+    \label{fig:csvlength}
+\end{figure}
+
+In the first case, the \texttt{pcap\_to\_ml\_csv\_length()} function is employed. The \textit{packet lengths} are calculated by initiating columns inside a CSV file, each representing a unique packet length, taking the directionality into account. Each time a packet is observed with length $L$ going in direction $D$, the value in column $L\_D$ is incremented by one. Direction 'up' denotes packets sent from the client to the access point, whereas 'down' means packets sent from the access point to the client. The last column in the CSV file contains the answer, a necessary field for the machine learning algorithm. A visual display of the CSV file format using the \texttt{pcap\_to\_ml\_csv\_length()} function is provided in \Cref{fig:csvlength}.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{csv_full.png}
+        \caption{Illustration of the CSV file format considering total trace time, upstream/downstream total bytes and number of frames, number of traffic bursts and bytes in traffic bursts as features.}
+    \label{fig:csvfull}
+\end{figure}
+
+In the second case, the \texttt{pcap\_to\_ml\_csv\_full()} function is utilized, focusing on total trace time, upstream/downstream total bytes, number of traffic bursts, and bytes in traffic bursts as features. \textit{Total trace time} is calculated by the difference between the timestamps of the first packet observed and the last observed downstream packet in the same PCAP file. \textit{Traffic bursts} are defined as a sequence of packets having the same directionality. For instance, if the attacker observes the following traffic: 
+\begin{equation*}
+(up, 200), (down, 800), (down, 1300), (down, 1450), (up, 200)
+\end{equation*}
+
+then the number of traffic bursts is three. For each packet observed, the different values are updated until all packets are processed. Like the \texttt{pcap\_to\_ml\_csv\_length()} function, the last column in the CSV file contains the answer.  A visual display of the CSV file format using the \texttt{pcap\_to\_ml\_csv\_full()} function is provided in  \Cref{fig:csvfull}.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{jupyternotebook.png}
+        \caption{Illustration of training the machine learning model inside Jupyter Notebook for the case of $k=2$, considering total trace time, upstream/downstream total bytes, number of traffic bursts and bytes in traffic bursts as features.}
+    \label{fig:jupyternotebook}
+\end{figure}
+
+\subsection{Training the classifier\label{subsec:training-methodology}}
+
+The attacker transitions to Jupyter Notebook \Cref{fig:jupyternotebook} after obtaining the CSV files for a specific $k$ and features considered. Here, the necessary libraries are imported in order to train the classifier. The process begins by storing the CSV files with a list, iterating through each CSV file, and reading its content.
+
+For each CSV file, two variables, $X$ and $y$, are defined, representing the features and labels. The dataset is split into a training and test set, following an $80\%$-$20\%$ split. The data is shuffled using a pseudorandom generator. Stratified sampling ensures all labels are represented during training and works by dividing the dataset into its different labels and drawing an equal number of samples from each label. Using stratified sampling eliminates sampling bias and prevents potential issues with zero division when applying Bayes' theorem within the classifier. As a result of the split, four variables are generated: the features and labels for both the training and test sets.
+
+The classifier used is a Gaussian naïve Bayes model, which assumes that the features follow a Gaussian distribution given a particular label. Gaussian naïve Bayes is common due to its simplicity and works by estimating the mean and standard deviation of the training set. Based on the training set, the classifier predicts the labels, considering the estimation of the mean and standard deviation.
+
+The process of splitting the dataset following an $80\%$-$20\%$ split and training the classifier is performed $100$ times to calculate an average accuracy score; this is the classifier's accuracy. Repeating the process $100$ times ensures a single split does not result in skewed results, achieving a more accurate measurement.
+
+\section{Limitations\label{sec:limitations-methodology}}
+
+This section will cover the limitations of data collection and analysis. The limitations are selection bias, limited scope, measurement errors, sample size, and time constraints. Lastly, the justification and mitigation of the different limitations will be addressed.
+
+\subsection{Selection bias\label{subsec:bias-methodology}}
+
+Choosing PDF files and web pages uniformly at random is not realistic. For the first scenario, the PDF files originate from the ePrint Archive website, where the papers do not undergo any refereeing process beforehand. Good research articles will receive more citations and attention than others. As a result, this will increase the likelihood that a client will access specific articles. Furthermore, in both years included, the PDF files were fetched between $2010$ and $2018$. Fetching a subset of available PDF files could also introduce size bias.
+
+\subsection{Limited scope\label{subsec:scope-methodology}}
+
+This thesis considers only a single classifier, limiting the scope. It could be the case that other classifiers will perform better than the classifier considered. The test set and training set used by the classifier are also fairly limited due to the experiment being performed a limited number of times for different values of $k$. The experiment's results will only indicate the accuracy of the näive Bayes classifier. This accuracy would be more reliable if one performed the experiment a greater number of times and included bigger and more values of $k$. In addition, no parameter tuning is performed to optimize the classifier's performance. The adjustment of hyperparameters of a machine learning model would also increase the accuracy of the classifier considered. An example is the assumption that the features follow a Gaussian distribution when training the classifier. While this distribution assumption may work well in many cases, it is not necessarily suitable in this context. 
+
+\subsection{Measurement errors\label{subsec:measurement-methodology}}
+
+The attacker is not guaranteed to observe traffic related to only the specific PDF file or web page fetched by the client. If the client sends other 802.11 data frames containing a CCMP header, then this will be interpreted as a packet related to the attacker's fetching of the specific PDF file or web page.
+
+Furthermore, there will be a slight delay between a client sending a signal to the attacker and the attacker receiving and acting upon the signal. While the thesis has implemented a time delay to ensure the attacker observes whole GET requests, there is still a trade off between time delay and the amount of data the author may collect. Therefore, the choice of the time delay is relatively small, which could introduce measurement errors where the attacker does not observe some parts of the GET requests if there are delays with the signal sent between the two computers.
+
+\subsection{Sample size and time constraints\label{subsec:sample-methodology}}
+
+The sample size considered is limited due to time constraints. Data for different values of $k$ was collected over several days, unlike previous research that collected data over several months. As a consequence, the limited amount of data collected results in a limited dataset fed to the classifier. This affects the accuracy of the classifier and, thereby, the results of the experiment.
+
+\subsection{Justification and mitigation\label{sec:justification-methodology}}
+
+This thesis achieves two things, starting with a limited setting, assuming PDF files and web pages are chosen uniformly at random. Firstly, it simplifies the scenario compared to a real-world scenario, which is more complex. In a real-world context, the distribution depends on factors such as the number of users, geographical location, and time of day. In addition, a user can access multiple web pages in parallel, making it difficult for the attacker to distinguish between the different web pages accessed. By simplifying the context, the evaluation of the performance of the fingerprinting attack can be used as a baseline for comparison or as an approximation of the success rate of the website fingerprinting attack in future work, allowing future research to introduce greater complexity. This is the intention of introducing the simple PDF fingerprinting scenario and the Wikipedia fingerprinting scenario before complicating the scenario to a more real-world context (domain fingerprinting scenario). Secondly, uniformly choosing PDF files and web pages removes the possibility of introducing bias into the dataset. In addition to this, it eliminates the need for any a priori information about the distribution. 
+
+The choice of fetching $900$ different PDF files from the ePrint archive could introduce size bias into the dataset. This is checked by fetching all files from the website and storing them in a local database on the laptop computer before the experiment, ensuring variability in file size. While the distribution of PDF sizes may have been affected, it was verified that the selection process ensured a diverse range of file sizes across the dataset.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=1\textwidth]{real_scenario.png}
+        \caption{Illustration of the physical setup.}
+    \label{fig:real_scenario}
+\end{figure}
+
+A single classifier is considered in this thesis despite the existence of multiple classifiers an attacker could use to perform a website fingerprinting attack. The näive Bayes classifier was chosen due to its simplicity, requiring minimal prior knowledge of machine learning algorithms. The attacker only needs to understand basic machine learning concepts and Bayes' theorem. An example is the use of the Gaussian distribution, which requires little knowledge by the attacker. Many datasets contain features that approximately follow a normal distribution. Thus, the use of a Gaussian distribution is logically a priori. The success rate of the näive Bayes classifier serves as a lower bound for the attack. Configuring the parameters of the chosen classifier and having in-depth knowledge of different classifiers will only increase the attack's success rate.
+
+Two feature sets are considered: packet lengths with directionality and total trace time, upstream/downstream total bytes, number of traffic bursts, and bytes in traffic bursts. The first considers individual frame lengths, taking the directionality into account. The other considers features looking at the traffic as a whole. Considering two different feature sets provides insight regarding what information is preferable for a classifier when distinguishing data and what information is more critical if leakage through side channels occurs. A time constraint impacted the decision not to include more feature sets.
+
+It is uncertain whether every packet observed corresponds to a GET request. Although the attacker only processes data frames with a specific format, some packets might not be part of the response. Nonetheless, the thesis simulates a setting intended to reflect real-world conditions. The challenge of distinguishing data purely by observing encrypted 802.11 frames is also an issue for real-world attackers. During the experiment, the desktop computer fetching the data is configured to turn off any running applications that may run in the background. Nevertheless, processes starting during the experiment can potentially affect the results. However, these occurrences are expected to have a minor effect on the results.
+
+Splitting PCAP files is essential for training the classifier, where the issue of splitting is well known, as the attacker only observes streams of encrypted data sent over the medium. It is not intuitive when the attacker observes the end of a GET response and the start of a new GET request. This thesis solves the issue of splitting the PCAP files by physically connecting the client's computer and the attacker's computer. A script interprets signals transmitted over the medium, enabling the attacker to know when to start and stop capturing data. A timeout of one second is applied between each GET request. This timeout value was determined based on empirical data from several test cases before the experiment. An illustration of the physical setup and the approach taken to split the PCAP files can be viewed in \Cref{fig:real_scenario}. The used scripts and the produced CSV files can be accessed through \url{https://github.com/Embrikht/Thesis}.
+
+Unlike previous studies \cite{DBLP:conf/ccs/HerrmannWF09, DBLP:conf/ccs/LiberatoreL06}, this experiment was conducted over a relatively limited number of days. Although earlier research benefited from a more extended data collection period, this thesis still provides valuable insights into an attacker's potential capabilities. A total of $\lceil \tfrac{4.000}{k \cdot 20} \rceil (k \cdot 20)$ data samples were gathered for each scenario given a $k$, which, in the author's view, indicates the attack's accuracy. While additional data would impact the results, it is expected that the change in accuracy would not be substantial. This thesis aims to demonstrate information leakage through encrypted 802.11 frames and how an attacker could exploit this information. The goal is not to determine an exact attack accuracy but to raise awareness of the attack's feasibility. The calculated accuracy should be interpreted as a baseline, not a precise measure.
